@@ -1,0 +1,16 @@
+{
+  "name": "FairKart",
+  "short_name": "FairKart",
+  "description": "Multi-Vendor Marketplace & Referral Platform",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}

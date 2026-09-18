@@ -1,0 +1,40 @@
+{
+  "name": "fairkart-backend",
+  "version": "1.0.0",
+  "description": "FairKart Backend API Services",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "seed": "node scripts/seed.js",
+    "seed:superadmin": "node scripts/seedSuperAdmin.js",
+    "test:superadmin": "node scripts/testSuperAdminSecurity.js",
+    "test:ecosystem": "node scripts/simulateFullEcosystemFlow.js",
+    "test:phase1": "node scripts/testPhase1.js",
+    "test:phase4": "node scripts/testPhase4.js",
+    "test:phase6": "node scripts/testPhase6.js",
+    "migrate:referral-9-level": "node scripts/migrateReferralNetworkTo9Levels.js",
+    "test:phase10": "node scripts/testPhase10.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-mongo-sanitize": "^2.2.0",
+    "express-rate-limit": "^7.3.0",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.4.1",
+    "morgan": "^1.10.0",
+    "otplib": "^13.5.0",
+    "qrcode": "^1.5.4",
+    "razorpay": "^2.9.8",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.2"
+  }
+}

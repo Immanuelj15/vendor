@@ -1,0 +1,14 @@
+{
+  "name": "fairkart-platform",
+  "version": "1.0.0",
+  "description": "FairKart - Multi-Vendor E-Commerce + MLM Referral + Fair Coins + Spin Wheel Platform",
+  "scripts": {
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "install:all": "npm install && cd server && npm install && cd ../client && npm install",
+    "test:phase1": "cd server && node scripts/testPhase1.js"
+  },
+  "keywords": ["e-commerce", "mlm", "referral", "fair-coins", "spin-wheel", "react", "express", "mongodb"],
+  "author": "FairKart Team",
+  "license": "ISC"
+}
