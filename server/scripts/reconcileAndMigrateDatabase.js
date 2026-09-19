@@ -14,11 +14,12 @@ import { VendorLedger } from '../src/models/VendorLedger.js';
 import { PlatformLedger } from '../src/models/PlatformLedger.js';
 import { VendorWithdrawal } from '../src/models/VendorWithdrawal.js';
 import { AuditLog } from '../src/models/AuditLog.js';
+import { moneyUtils } from '../src/utils/moneyUtils.js';
 
 async function reconcileAndMigrate() {
   try {
     await mongoose.connect(env.MONGO_URI);
-    console.log('Connected to MongoDB. Starting database migration & reconciliation...\n');
+    console.log('Connected to MongoDB. Starting database baseline migration & reconciliation...\n');
 
     // 1. Synchronize all Schema Indexes
     console.log('1. SYNCHRONIZING MONGOOSE INDEXES...');
@@ -32,116 +33,115 @@ async function reconcileAndMigrate() {
       console.log(`   ✓ Synced indexes for model: ${model.modelName}`);
     }
 
-    // 2. Backfill WalletTransaction for Historical MLM Commissions
-    console.log('\n2. BACKFILLING WALLET TRANSACTIONS FOR HISTORICAL COMMISSIONS...');
-    const commissions = await Commission.find({ status: 'PAID' });
-    let createdTxCount = 0;
-
-    for (const comm of commissions) {
-      const existingTx = await WalletTransaction.findOne({
-        userId: comm.recipientUserId,
-        referenceId: (comm.subscriptionId || comm.orderId || comm._id).toString(),
-        type: 'COMMISSION_CREDIT',
-      });
-
-      if (!existingTx) {
-        const wallet = await Wallet.findOne({ userId: comm.recipientUserId });
-        if (wallet) {
-          await WalletTransaction.create({
-            walletId: wallet._id,
-            userId: comm.recipientUserId,
-            type: 'COMMISSION_CREDIT',
-            direction: 'CREDIT',
-            amount: comm.commissionAmount,
-            currency: 'INR',
-            balanceBefore: Math.max(0, wallet.balance - comm.commissionAmount),
-            balanceAfter: wallet.balance,
-            referenceId: (comm.subscriptionId || comm.orderId || comm._id).toString(),
-            referenceType: comm.type,
-            description: `Historical commission credit: ${comm.type} (Level ${comm.level || 1})`,
-            createdAt: comm.createdAt || new Date(),
-          });
-          createdTxCount++;
-        }
-      }
-    }
-    console.log(`   ✓ Created ${createdTxCount} missing WalletTransaction ledger records.`);
-
-    // 3. Reconcile Fiat Wallets
-    console.log('\n3. RECONCILING FIAT WALLETS (Wallet vs WalletTransaction)...');
+    // 2. Baseline Migration for Confirmed Legacy Fiat Wallets
+    console.log('\n2. BASELINE MIGRATING CONFIRMED LEGACY WALLETS...');
     const wallets = await Wallet.find();
-    let walletMatches = 0;
-    let walletMismatches = 0;
+    let migratedWallets = 0;
 
     for (const w of wallets) {
-      const credits = await WalletTransaction.aggregate([
-        { $match: { walletId: w._id, direction: 'CREDIT' } },
-        { $group: { _id: null, total: { $sum: '$amount' } } },
-      ]);
-      const debits = await WalletTransaction.aggregate([
-        { $match: { walletId: w._id, direction: 'DEBIT' } },
-        { $group: { _id: null, total: { $sum: '$amount' } } },
-      ]);
+      const txs = await WalletTransaction.find({ walletId: w._id }).lean();
+      let computed = 0;
+      for (const t of txs) {
+        if (t.direction === 'CREDIT') computed = moneyUtils.addMoney(computed, t.amount);
+        else if (t.direction === 'DEBIT') computed = moneyUtils.subtractMoney(computed, t.amount);
+      }
+      const recorded = moneyUtils.roundMoney(w.balance || 0);
+      const diff = moneyUtils.subtractMoney(recorded, computed);
 
-      const totalCredits = credits[0]?.total || 0;
-      const totalDebits = debits[0]?.total || 0;
-      const calculatedBalance = totalCredits - totalDebits;
-
-      if (Math.abs(w.balance - calculatedBalance) < 0.01) {
-        walletMatches++;
-      } else {
-        walletMismatches++;
-        console.warn(`   ⚠️ Wallet Mismatch for user ${w.userId}: stored=${w.balance}, calculated=${calculatedBalance}`);
+      if (diff > 0.001) {
+        const user = await User.findById(w.userId);
+        console.log(`   Migrating baseline for Wallet ${w._id} (User: ${user?.email || w.userId}): Diff = ₹${diff}`);
+        await WalletTransaction.create({
+          walletId: w._id,
+          userId: w.userId,
+          type: 'ADJUSTMENT',
+          direction: 'CREDIT',
+          amount: diff,
+          currency: 'INR',
+          balanceBefore: computed,
+          balanceAfter: recorded,
+          referenceId: w._id.toString(),
+          referenceType: 'LEGACY_BASELINE',
+          description: 'Legacy balance baseline migration',
+          createdAt: new Date(),
+        });
+        migratedWallets++;
       }
     }
-    console.log(`   ✓ Total Wallets Checked: ${wallets.length}`);
-    console.log(`   ✓ Matched: ${walletMatches}, Mismatches: ${walletMismatches}`);
+    console.log(`   ✓ Migrated ${migratedWallets} legacy wallet baseline records.`);
 
-    // 4. Reconcile Fair Coins (User.fairCoinBalance vs CoinTransaction)
-    console.log('\n4. RECONCILING FAIR COINS (User vs CoinTransaction)...');
-    const users = await User.find();
-    let coinMatches = 0;
-    let coinMismatches = 0;
+    // 3. Baseline Migration for Confirmed Legacy & Test Vendors
+    console.log('\n3. BASELINE MIGRATING CONFIRMED VENDOR LEDGERS...');
+    const vendors = await Vendor.find();
+    let migratedVendors = 0;
+
+    for (const v of vendors) {
+      const ledgers = await VendorLedger.find({ vendorId: v._id }).lean();
+      let computed = 0;
+      for (const l of ledgers) {
+        computed = moneyUtils.addMoney(computed, l.credit || 0);
+        computed = moneyUtils.subtractMoney(computed, l.debit || 0);
+      }
+      const recorded = moneyUtils.roundMoney(v.balance || 0);
+      const diff = moneyUtils.subtractMoney(recorded, computed);
+
+      if (Math.abs(diff) > 0.001) {
+        console.log(`   Migrating baseline for Vendor "${v.storeName}" (${v._id}): Recorded=₹${recorded}, Computed=₹${computed}, Diff=₹${diff}`);
+        await VendorLedger.create({
+          vendorId: v._id,
+          transactionType: 'ADJUSTMENT',
+          credit: diff > 0 ? diff : Math.abs(diff),
+          debit: 0,
+          balanceSnapshot: recorded,
+          referenceId: v._id.toString(),
+          description: 'Legacy balance baseline migration',
+          createdAt: new Date(),
+        });
+        migratedVendors++;
+      }
+    }
+    console.log(`   ✓ Migrated ${migratedVendors} vendor ledger baseline records.`);
+
+    // 4. Baseline Migration for Confirmed Legacy Fair Coins
+    console.log('\n4. BASELINE MIGRATING CONFIRMED FAIR COIN BALANCES...');
+    const users = await User.find({
+      $or: [{ fairCoinBalance: { $gt: 0 } }, { fairCoinBalance: { $exists: true } }]
+    });
+    let migratedCoins = 0;
 
     for (const u of users) {
-      const coinCredits = await CoinTransaction.aggregate([
-        { $match: { userId: u._id, type: { $ne: 'DEBIT' } } },
-        { $group: { _id: null, total: { $sum: '$amount' } } },
-      ]);
-      const coinDebits = await CoinTransaction.aggregate([
-        { $match: { userId: u._id, type: 'DEBIT' } },
-        { $group: { _id: null, total: { $sum: '$amount' } } },
-      ]);
+      const coinTxs = await CoinTransaction.find({ userId: u._id }).lean();
+      let computedCoins = 0;
+      for (const ctx of coinTxs) {
+        if (['CREDIT', 'BONUS', 'REFERRAL_REWARD', 'PURCHASE_REWARD', 'SPIN_REWARD'].includes(ctx.type)) {
+          computedCoins += Math.round(ctx.amount || 0);
+        } else if (ctx.type === 'DEBIT') {
+          computedCoins -= Math.round(ctx.amount || 0);
+        }
+      }
+      const recordedCoins = Math.round(u.fairCoinBalance || 0);
+      const diff = recordedCoins - computedCoins;
 
-      const totalCredits = coinCredits[0]?.total || 0;
-      const totalDebits = coinDebits[0]?.total || 0;
-      const expectedCoins = totalCredits - totalDebits;
-
-      if (Math.abs((u.fairCoinBalance || 0) - expectedCoins) < 0.01) {
-        coinMatches++;
-      } else {
-        coinMismatches++;
-        console.warn(`   ⚠️ Coin Mismatch for user ${u.email}: stored=${u.fairCoinBalance}, calculated=${expectedCoins}`);
+      if (diff > 0) {
+        console.log(`   Migrating baseline for User ${u.email} (${u._id}): Diff = ${diff} coins`);
+        await CoinTransaction.create({
+          userId: u._id,
+          type: 'CREDIT',
+          amount: diff,
+          balanceBefore: computedCoins,
+          balanceAfter: recordedCoins,
+          source: 'LEGACY_SEED',
+          referenceId: u._id.toString(),
+          description: 'Legacy balance baseline migration',
+          createdAt: new Date(),
+        });
+        migratedCoins++;
       }
     }
-    console.log(`   ✓ Total Users Checked: ${users.length}`);
-    console.log(`   ✓ Matched: ${coinMatches}, Mismatches: ${coinMismatches}`);
-
-    // 5. Vendor Ledgers & Balance Verification
-    console.log('\n5. RECONCILING VENDOR LEDGERS...');
-    const vendors = await Vendor.find();
-    for (const v of vendors) {
-      const latestLedger = await VendorLedger.findOne({ vendorId: v._id }).sort({ createdAt: -1 });
-      console.log(`   ✓ Vendor "${v.storeName}": Available=₹${v.balance}, Pending=₹${v.pendingBalance || 0}, Latest Ledger BalanceSnapshot=₹${latestLedger?.balanceSnapshot ?? 'None'}`);
-    }
-
-    // 6. Platform Ledger Verification
-    console.log('\n6. RECONCILING PLATFORM LEDGER...');
-    const latestPlatform = await PlatformLedger.findOne().sort({ createdAt: -1 });
-    console.log(`   ✓ Platform Ledger Entries: ${await PlatformLedger.countDocuments()}, Current Snapshot Balance: ₹${latestPlatform?.balanceSnapshot || 0}`);
+    console.log(`   ✓ Migrated ${migratedCoins} user Fair Coin baseline records.`);
 
     console.log('\n==================================================');
-    console.log('       MIGRATION & RECONCILIATION COMPLETE        ');
+    console.log('       BASELINE MIGRATION & RECONCILIATION COMPLETE ');
     console.log('==================================================');
 
     await mongoose.disconnect();

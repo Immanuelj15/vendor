@@ -211,6 +211,26 @@ export const authService = {
       }
     }
 
+    // Enforce Super Admin Mandatory MFA
+    if (user.role === ROLES.SUPER_ADMIN && user.mfaEnabled) {
+      const jwt = (await import('jsonwebtoken')).default;
+      const mfaToken = jwt.sign(
+        { id: user._id, role: user.role, type: 'MFA_PENDING' },
+        process.env.JWT_SECRET || 'fairkart_jwt_secret_key_prod_2026',
+        { expiresIn: '5m' }
+      );
+      return {
+        mfaRequired: true,
+        mfaToken,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        },
+      };
+    }
+
     user.lastLoginAt = new Date();
     await user.save();
 

@@ -38,6 +38,7 @@ import vendorReferralRoutes from './vendorReferralRoutes.js';
 import customerAttributionRoutes from './customerAttributionRoutes.js';
 import publicReferralRoutes from './publicReferralRoutes.js';
 import superAdminRoutes from './superAdminRoutes.js';
+import mfaRoutes from './mfaRoutes.js';
 
 const router = express.Router();
 
@@ -45,7 +46,8 @@ router.use('/super-admin', superAdminRoutes);
 
 router.use('/health', healthRoutes);
 router.use('/territories', territoryRoutes);
-router.use('/auth/vendor-onboarding', vendorOnboardingRoutes); // Added for vendor onboarding
+router.use('/auth/mfa', mfaRoutes);
+router.use('/auth/vendor-onboarding', vendorOnboardingRoutes);
 router.use('/auth', authRoutes);
 router.use('/categories', categoryRoutes);
 router.use('/products', productRoutes);

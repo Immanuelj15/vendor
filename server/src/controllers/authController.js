@@ -23,8 +23,23 @@ export const register = asyncWrapper(async (req, res) => {
 });
 
 export const login = asyncWrapper(async (req, res) => {
-  const { user, tokens } = await authService.login(req.body);
+  const result = await authService.login(req.body);
 
+  if (result.mfaRequired) {
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        {
+          mfaRequired: true,
+          mfaToken: result.mfaToken,
+          user: result.user,
+        },
+        'Two-factor authentication code required'
+      )
+    );
+  }
+
+  const { user, tokens } = result;
   res.cookie('refreshToken', tokens.refreshToken, COOKIE_OPTIONS);
   return res.status(200).json(
     new ApiResponse(

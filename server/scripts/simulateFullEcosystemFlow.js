@@ -218,7 +218,8 @@ async function runEcosystemSimulation() {
     await VendorLedger.create({
       vendorId: refreshedVendor._id,
       transactionType: 'PAYOUT',
-      debit: withdrawal.amount,
+      credit: 0,
+      debit: 0,
       balanceSnapshot: refreshedVendor.balance,
       description: 'Vendor withdrawal payout approved by Super Admin',
       referenceId: withdrawal._id.toString(),

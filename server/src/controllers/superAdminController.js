@@ -1226,11 +1226,12 @@ export const approvePayoutRequest = asyncWrapper(async (req, res) => {
   vendor.pendingBalance = Math.max(0, (vendor.pendingBalance || 0) - withdrawal.amount);
   await vendor.save();
 
-  // 2. Record in immutable VendorLedger as PAYOUT
+  // 2. Record in immutable VendorLedger as PAYOUT (confirmation of settlement)
   await VendorLedger.create({
     vendorId: vendor._id,
     transactionType: 'PAYOUT',
-    debit: withdrawal.amount,
+    credit: 0,
+    debit: 0, // Available balance was already debited during reservation
     balanceSnapshot: vendor.balance,
     description: `Payout approved & disbursed by Super Admin (${adminNotes || 'Direct Bank/UPI Settlement'})`,
     referenceId: withdrawal._id.toString(),

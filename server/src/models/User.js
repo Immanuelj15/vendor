@@ -107,6 +107,34 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    mfaEnabled: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    mfaSecret: {
+      type: String,
+      select: false,
+    },
+    mfaVerifiedAt: {
+      type: Date,
+      default: null,
+    },
+    mfaRecoveryCodes: [
+      {
+        codeHash: { type: String, required: true },
+        used: { type: Boolean, default: false },
+        usedAt: { type: Date, default: null },
+      },
+    ],
+    mfaFailedAttempts: {
+      type: Number,
+      default: 0,
+    },
+    mfaLockedUntil: {
+      type: Date,
+      default: null,
+    },
     authorizedHubs: [
       {
         type: mongoose.Schema.Types.ObjectId,

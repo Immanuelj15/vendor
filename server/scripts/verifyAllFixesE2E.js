@@ -233,11 +233,14 @@ async function runE2EVerification() {
     assert(successCount === 1, `Exactly 1 concurrent purchase succeeded (successCount: ${successCount})`);
     assert(finalProduct.stock === 0, `Final stock is 0 and did NOT drop negative (got: ${finalProduct.stock})`);
 
-    // -------------------------------------------------------------
-    // TEST 6: HIGH-01 - Vendor Withdrawal Reservation & Idempotency
-    // -------------------------------------------------------------
-    console.log('\n--- TEST 6: HIGH-01 - Vendor Withdrawal Atomic Reservation ---');
     await Vendor.findByIdAndUpdate(testVendor._id, { balance: 5000 });
+    await VendorLedger.create({
+      vendorId: testVendor._id,
+      transactionType: 'SALE',
+      credit: 5000,
+      balanceSnapshot: 5000,
+      description: 'Audit test starting sales balance'
+    });
 
     const idempotencyKey = `wd_audit_${Date.now()}`;
     const wd1 = await vendorService.requestWithdrawal(testVendor._id, {

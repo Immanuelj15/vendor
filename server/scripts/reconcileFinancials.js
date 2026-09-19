@@ -65,15 +65,25 @@ export async function runFinancialReconciliation() {
 
     if (Math.abs(diff) > 0.001) {
       report.wallets.mismatched++;
-      report.wallets.mismatches.push({
-        walletId: wallet._id.toString(),
-        userId: wallet.userId?.toString(),
-        recordedBalance,
-        computedBalance,
-        diff,
-        txCount: txs.length
-      });
-      console.log(`  [MISMATCH] Wallet ${wallet._id} (User: ${wallet.userId}): Recorded=₹${recordedBalance}, Computed=₹${computedBalance}, Diff=₹${diff}`);
+      const user = await User.findById(wallet.userId).lean();
+      const isLegacy = user?.email?.endsWith('@fairkart.dev') || false;
+      const isTest = user?.email?.includes('test') || user?.email?.includes('local') || false;
+      const classification = isLegacy ? 'LEGACY_SEED' : (isTest ? 'TEST_DATA' : 'UNKNOWN');
+
+      const mismatchItem = {
+        recordId: wallet._id.toString(),
+        entity: 'Wallet',
+        currentBalance: recordedBalance,
+        expectedBalance: computedBalance,
+        difference: diff,
+        source: user?.email || 'Unknown User',
+        createdAt: wallet.createdAt ? new Date(wallet.createdAt).toISOString() : 'Unknown',
+        isLegacySeed: isLegacy,
+        isProductionData: !isLegacy && !isTest,
+        classification,
+      };
+      report.wallets.mismatches.push(mismatchItem);
+      console.log(`  [MISMATCH] Wallet ${wallet._id}: Recorded=₹${recordedBalance}, Expected=₹${computedBalance}, Diff=₹${diff} | Source: ${mismatchItem.source} | Class: ${classification}`);
     } else {
       report.wallets.matched++;
     }
@@ -100,15 +110,24 @@ export async function runFinancialReconciliation() {
 
     if (Math.abs(diff) > 0.001) {
       report.vendors.mismatched++;
-      report.vendors.mismatches.push({
-        vendorId: vendor._id.toString(),
-        storeName: vendor.storeName,
-        recordedBalance,
-        computedBalance,
-        diff,
-        ledgerCount: ledgers.length
-      });
-      console.log(`  [MISMATCH] Vendor ${vendor.storeName} (${vendor._id}): Recorded=₹${recordedBalance}, Computed=₹${computedBalance}, Diff=₹${diff}`);
+      const isLegacy = vendor.slug === 'techkraft' || vendor.storeName?.includes('TechKraft');
+      const isTest = vendor.storeName?.includes('Audit') || vendor.storeName?.includes('MLM') || vendor.storeName?.includes('Test');
+      const classification = isLegacy ? 'LEGACY_SEED' : (isTest ? 'TEST_DATA' : 'UNKNOWN');
+
+      const mismatchItem = {
+        recordId: vendor._id.toString(),
+        entity: 'Vendor',
+        currentBalance: recordedBalance,
+        expectedBalance: computedBalance,
+        difference: diff,
+        source: vendor.storeName,
+        createdAt: vendor.createdAt ? new Date(vendor.createdAt).toISOString() : 'Unknown',
+        isLegacySeed: isLegacy,
+        isProductionData: !isLegacy && !isTest,
+        classification,
+      };
+      report.vendors.mismatches.push(mismatchItem);
+      console.log(`  [MISMATCH] Vendor "${vendor.storeName}" (${vendor._id}): Recorded=₹${recordedBalance}, Expected=₹${computedBalance}, Diff=₹${diff} | Class: ${classification}`);
     } else {
       report.vendors.matched++;
     }
@@ -184,16 +203,24 @@ export async function runFinancialReconciliation() {
 
     if (diff !== 0) {
       report.fairCoins.mismatched++;
-      report.fairCoins.mismatches.push({
-        userId: u._id.toString(),
-        name: u.name,
-        email: u.email,
-        recordedCoins,
-        computedCoins,
-        diff,
-        txCount: coinTxs.length
-      });
-      console.log(`  [MISMATCH] User ${u.email} (${u._id}): Recorded=${recordedCoins}, Computed=${computedCoins}, Diff=${diff} coins`);
+      const isLegacy = u.email?.endsWith('@fairkart.dev') || false;
+      const isTest = u.email?.includes('test') || u.email?.includes('local') || false;
+      const classification = isLegacy ? 'LEGACY_SEED' : (isTest ? 'TEST_DATA' : 'UNKNOWN');
+
+      const mismatchItem = {
+        recordId: u._id.toString(),
+        entity: 'FairCoins',
+        currentBalance: recordedCoins,
+        expectedBalance: computedCoins,
+        difference: diff,
+        source: u.email,
+        createdAt: u.createdAt ? new Date(u.createdAt).toISOString() : 'Unknown',
+        isLegacySeed: isLegacy,
+        isProductionData: !isLegacy && !isTest,
+        classification,
+      };
+      report.fairCoins.mismatches.push(mismatchItem);
+      console.log(`  [MISMATCH] User ${u.email} (${u._id}): Recorded=${recordedCoins}, Expected=${computedCoins}, Diff=${diff} coins | Class: ${classification}`);
     } else {
       report.fairCoins.matched++;
     }
@@ -327,6 +354,25 @@ export async function runFinancialReconciliation() {
   console.log(`  Total Evaluated Modules: 7`);
   console.log(`  Total Financial Mismatches: ${totalMismatches}`);
   console.log('================================================================\n');
+
+  if (totalMismatches > 0) {
+    console.log('--- DETAILED FINANCIAL MISMATCH CLASSIFICATION TABLE ---');
+    console.table([
+      ...report.wallets.mismatches,
+      ...report.vendors.mismatches,
+      ...report.fairCoins.mismatches,
+    ].map(m => ({
+      recordId: m.recordId,
+      entity: m.entity,
+      currentBalance: m.currentBalance,
+      expectedBalance: m.expectedBalance,
+      difference: m.difference,
+      source: m.source,
+      classification: m.classification,
+      isLegacySeed: m.isLegacySeed,
+      isProductionData: m.isProductionData
+    })));
+  }
 
   return report;
 }
