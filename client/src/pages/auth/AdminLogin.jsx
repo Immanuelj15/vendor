@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser, clearAuthError } from '../../store/authSlice';
-import { Shield, Lock, Mail, ArrowRight, AlertCircle, Loader2, KeyRound, Eye, EyeOff } from 'lucide-react';
+import { Shield, Lock, Mail, ArrowRight, AlertCircle, Loader2, KeyRound, Eye, EyeOff, ShieldCheck, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export const AdminLogin = () => {
@@ -33,12 +33,37 @@ export const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center px-4 py-12 bg-gradient-to-b from-blue-50/70 via-slate-50 to-white">
+    <div className="relative min-h-[88vh] flex items-center justify-center px-4 py-12 bg-slate-50 overflow-hidden">
+      {/* Small Grid Box Pattern Layer */}
+      <div className="absolute inset-0 bg-grid-pattern radial-fade-mask opacity-80 pointer-events-none" />
+
+      {/* Ambient Animated Glows */}
+      <div className="absolute -top-32 -left-32 w-80 h-80 bg-blue-600/15 rounded-full blur-3xl pointer-events-none animate-pulse-glow" />
+      <div
+        className="absolute -bottom-32 -right-32 w-80 h-80 bg-indigo-600/15 rounded-full blur-3xl pointer-events-none animate-pulse-glow"
+        style={{ animationDelay: '2s' }}
+      />
+
+      {/* Floating Decorative Badges */}
+      <div className="hidden lg:block absolute top-24 left-24 animate-float-slow pointer-events-none">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/90 backdrop-blur-md border border-slate-200 text-xs font-bold text-slate-700 shadow-sm">
+          <ShieldCheck className="w-4 h-4 text-blue-600" />
+          <span>RBAC Operations Gate</span>
+        </div>
+      </div>
+
+      <div className="hidden lg:block absolute bottom-24 right-24 animate-float-reverse pointer-events-none">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/90 backdrop-blur-md border border-slate-200 text-xs font-bold text-slate-700 shadow-sm">
+          <Sparkles className="w-4 h-4 text-amber-500" />
+          <span>Audit Logged Sessions</span>
+        </div>
+      </div>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35 }}
-        className="w-full max-w-md bg-white border border-blue-200/80 rounded-3xl p-8 shadow-xl shadow-blue-500/5 relative overflow-hidden"
+        className="relative z-10 w-full max-w-md bg-white/95 backdrop-blur-xl border border-blue-200/80 rounded-3xl p-8 shadow-2xl shadow-blue-500/10 overflow-hidden"
       >
         <div className="absolute -top-20 -right-20 w-44 h-44 bg-blue-700/10 rounded-full blur-3xl pointer-events-none" />
 

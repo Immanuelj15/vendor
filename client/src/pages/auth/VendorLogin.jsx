@@ -13,9 +13,13 @@ import {
   Ban,
   ShieldAlert,
   Eye,
-  EyeOff
+  EyeOff,
+  TrendingUp,
+  Banknote,
+  QrCode
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { AuthLayout } from '../../components/auth/AuthLayout';
 
 export const VendorLogin = () => {
   const [emailOrPhone, setEmailOrPhone] = useState('');
@@ -86,13 +90,20 @@ export const VendorLogin = () => {
   };
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center px-4 py-12 bg-gradient-to-b from-blue-50/60 via-slate-50 to-white">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35 }}
-        className="w-full max-w-md bg-white border border-blue-100 rounded-3xl p-8 shadow-xl shadow-blue-500/5 relative overflow-hidden"
-      >
+    <AuthLayout
+      badge="FairKart Merchant Hub"
+      title="Scale Your Brand Across India with FairKart"
+      subtitle="Comprehensive vendor catalog management, multi-channel product distribution, real-time inventory tracking, and guaranteed bank payouts."
+      imageSrc="/images/vendor-auth.jpg"
+      imageAlt="FairKart Vendor Portal"
+      features={[
+        { icon: Banknote, text: 'Fast automated vendor payouts & AES-256 bank encryption' },
+        { icon: TrendingUp, text: 'Transparent analytics, sales trends & commission reports' },
+        { icon: QrCode, text: 'Store QR code for local shopper walk-in rewards' },
+      ]}
+      theme="emerald"
+    >
+      <div className="w-full max-w-md bg-white/95 backdrop-blur-xl border border-blue-100/90 rounded-3xl p-8 shadow-2xl shadow-blue-500/10 relative overflow-hidden">
         <div className="absolute -top-20 -right-20 w-44 h-44 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Header */}
@@ -224,8 +235,8 @@ export const VendorLogin = () => {
             </Link>
           </p>
         </div>
-      </motion.div>
-    </div>
+      </div>
+    </AuthLayout>
   );
 };
 

@@ -13,12 +13,15 @@ import {
   ArrowRight,
   AlertCircle,
   Loader2,
-  CheckCircle2,
   ChevronDown,
   ChevronUp,
-  Store
+  Store,
+  ShieldCheck,
+  Gift,
+  Coins
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { AuthLayout } from '../components/auth/AuthLayout';
 
 export const Register = () => {
   const [searchParams] = useSearchParams();
@@ -139,12 +142,20 @@ export const Register = () => {
   };
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center px-4 py-12 bg-gradient-to-b from-blue-50/40 via-slate-50 to-white">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-lg bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden"
-      >
+    <AuthLayout
+      badge="Join FairKart Network"
+      title="Create Your Account & Claim Welcome Coins"
+      subtitle="Sign up in seconds to unlock member-only flash discounts, earn Fair Coins with every spin wheel, and build your referral upline."
+      imageSrc="/images/customer-auth.jpg"
+      imageAlt="FairKart Registration"
+      features={[
+        { icon: Coins, text: 'Instant 100 Welcome Fair Coins credited to wallet' },
+        { icon: Gift, text: 'Free daily spin on the FairKart Reward Wheel' },
+        { icon: ShieldCheck, text: 'Safe, private, and verified customer protections' },
+      ]}
+      theme="blue"
+    >
+      <div className="w-full max-w-lg bg-white/95 backdrop-blur-xl border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-blue-500/10 relative overflow-hidden">
         <div className="absolute -top-24 -left-24 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="text-center mb-6">
@@ -438,8 +449,8 @@ export const Register = () => {
             </Link>
           </div>
         </div>
-      </motion.div>
-    </div>
+      </div>
+    </AuthLayout>
   );
 };
 

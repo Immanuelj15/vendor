@@ -61,11 +61,21 @@ export const PortalGateway = () => {
   };
 
   return (
-    <div className="min-h-[88vh] flex items-center justify-center px-4 py-12 bg-gradient-to-b from-blue-50/50 via-slate-50 to-white">
+    <div className="relative min-h-[88vh] flex items-center justify-center px-4 py-12 bg-slate-50 overflow-hidden">
+      {/* Small Grid Box Pattern */}
+      <div className="absolute inset-0 bg-grid-pattern radial-fade-mask opacity-80 pointer-events-none" />
+
+      {/* Ambient Animated Glows */}
+      <div className="absolute -top-32 -left-32 w-80 h-80 bg-blue-500/15 rounded-full blur-3xl pointer-events-none animate-pulse-glow" />
+      <div
+        className="absolute -bottom-32 -right-32 w-80 h-80 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none animate-pulse-glow"
+        style={{ animationDelay: '2.5s' }}
+      />
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-lg bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden"
+        className="relative z-10 w-full max-w-lg bg-white/95 backdrop-blur-xl border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-blue-500/10 overflow-hidden"
       >
         <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 

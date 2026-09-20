@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { loginUser, clearAuthError } from '../../store/authSlice';
 import { ShoppingBag, Lock, Mail, ArrowRight, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { AuthLayout } from '../../components/auth/AuthLayout';
 
 export const CustomerLogin = () => {
   const [emailOrPhone, setEmailOrPhone] = useState('');
@@ -42,13 +43,15 @@ export const CustomerLogin = () => {
   };
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center px-4 py-12 bg-gradient-to-b from-blue-50/50 via-slate-50 to-white">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35 }}
-        className="w-full max-w-md bg-white border border-blue-100 rounded-3xl p-8 shadow-xl shadow-blue-500/5 relative overflow-hidden"
-      >
+    <AuthLayout
+      badge="FairKart Shopper Portal"
+      title="Shop, Earn Coins & Win Live Rewards"
+      subtitle="Join thousands of shoppers earning guaranteed Fair Coins on every verified checkout, spin wheel bonuses, and 9-level upline partner commissions."
+      imageSrc="/images/customer-auth.jpg"
+      imageAlt="FairKart Shopping Rewards"
+      theme="blue"
+    >
+      <div className="w-full max-w-md bg-white/95 backdrop-blur-xl border border-blue-100/90 rounded-3xl p-8 shadow-2xl shadow-blue-500/10 relative overflow-hidden">
         {/* Ambient Glow */}
         <div className="absolute -top-20 -right-20 w-44 h-44 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -153,8 +156,8 @@ export const CustomerLogin = () => {
             </Link>
           </p>
         </div>
-      </motion.div>
-    </div>
+      </div>
+    </AuthLayout>
   );
 };
 

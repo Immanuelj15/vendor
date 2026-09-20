@@ -88,12 +88,37 @@ export const SuperAdminLogin = () => {
   };
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center px-4 py-12 bg-gradient-to-b from-slate-100 via-blue-50/50 to-white">
+    <div className="relative min-h-[88vh] flex items-center justify-center px-4 py-12 bg-slate-900/5 overflow-hidden">
+      {/* Small Grid Box Pattern */}
+      <div className="absolute inset-0 bg-grid-pattern radial-fade-mask opacity-75 pointer-events-none" />
+
+      {/* Ambient Animated Glows */}
+      <div className="absolute -top-32 -left-32 w-80 h-80 bg-blue-700/15 rounded-full blur-3xl pointer-events-none animate-pulse-glow" />
+      <div
+        className="absolute -bottom-32 -right-32 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none animate-pulse-glow"
+        style={{ animationDelay: '2.5s' }}
+      />
+
+      {/* Floating Decorative Badges */}
+      <div className="hidden lg:block absolute top-24 left-20 animate-float-slow pointer-events-none">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/90 text-amber-400 border border-amber-400/30 text-xs font-bold shadow-lg">
+          <Crown className="w-3.5 h-3.5 text-amber-400" />
+          <span>Root Privilege Zone</span>
+        </div>
+      </div>
+
+      <div className="hidden lg:block absolute bottom-24 right-20 animate-float-reverse pointer-events-none">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/90 text-emerald-400 border border-emerald-400/30 text-xs font-bold shadow-lg">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+          <span>RFC 6238 TOTP Active</span>
+        </div>
+      </div>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35 }}
-        className="w-full max-w-md bg-white border border-slate-300/80 rounded-3xl p-8 shadow-2xl shadow-blue-900/10 relative overflow-hidden"
+        className="relative z-10 w-full max-w-md bg-white/95 backdrop-blur-xl border border-slate-300/80 rounded-3xl p-8 shadow-2xl shadow-blue-900/15 overflow-hidden"
       >
         <div className="absolute -top-24 -right-24 w-52 h-52 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -left-24 w-52 h-52 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
