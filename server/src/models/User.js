@@ -103,6 +103,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       select: false,
     },
+    lastRotatedTokenHash: {
+      type: String,
+      select: false,
+      default: null,
+    },
     lastLoginAt: {
       type: Date,
       default: null,
@@ -154,6 +159,20 @@ const userSchema = new mongoose.Schema(
     toObject: { virtuals: true },
   }
 );
+
+// Virtual for mobileNumber (canonical alias for phone)
+userSchema.virtual('mobileNumber')
+  .get(function () { return this.phone; })
+  .set(function (val) { this.phone = val; });
+
+// Virtuals for verification flags
+userSchema.virtual('isEmailVerified')
+  .get(function () { return this.emailVerified; })
+  .set(function (val) { this.emailVerified = val; });
+
+userSchema.virtual('isMobileVerified')
+  .get(function () { return this.phoneVerified; })
+  .set(function (val) { this.phoneVerified = val; });
 
 // Virtual for isActive
 userSchema.virtual('isActive').get(function () {

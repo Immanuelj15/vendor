@@ -269,7 +269,7 @@ export const franchiseService = {
 
       // If suspended or terminated, revert user role
       if (['SUSPENDED', 'TERMINATED', 'REJECTED'].includes(status)) {
-        await User.findByIdAndUpdate(franchise.userId, { role: 'USER' }).session(session);
+        await User.findByIdAndUpdate(franchise.userId, { role: ROLES.CUSTOMER }).session(session);
       }
 
       await AuditLog.create(

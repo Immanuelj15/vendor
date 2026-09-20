@@ -6,6 +6,10 @@ import { ApiError } from '../utils/ApiError.js';
 import { ERROR_CODES } from '../constants/responseCodes.js';
 import bcrypt from 'bcryptjs';
 
+import { AdminProfile } from '../models/AdminProfile.js';
+import { SuperAdminProfile } from '../models/SuperAdminProfile.js';
+import { logAdminAction } from '../services/auditLogService.js';
+
 // --- Roles ---
 export const getRoles = asyncWrapper(async (req, res) => {
   const roles = await AdminRole.find().sort({ name: 1 });
@@ -47,22 +51,54 @@ export const getAdmins = asyncWrapper(async (req, res) => {
 export const createAdmin = asyncWrapper(async (req, res) => {
   const { name, email, phone, password, adminRoleId, isSuperAdmin } = req.body;
 
-  const existing = await User.findOne({ email });
+  if (isSuperAdmin && req.user.role !== 'SUPER_ADMIN') {
+    throw new ApiError(403, 'Only Super Admin can provision Super Admin accounts', ERROR_CODES.FORBIDDEN);
+  }
+
+  const existing = await User.findOne({ email: email.toLowerCase().trim() });
   if (existing) throw new ApiError(400, 'Email already exists', ERROR_CODES.CONFLICT);
 
   const salt = await bcrypt.genSalt(10);
   const passwordHash = await bcrypt.hash(password, salt);
 
-  const roleStr = isSuperAdmin ? 'SUPER_ADMIN' : 'ADMIN';
+  const roleStr = (isSuperAdmin && req.user.role === 'SUPER_ADMIN') ? 'SUPER_ADMIN' : 'ADMIN';
 
   const user = await User.create({
-    name,
-    email,
-    phone,
+    name: name.trim(),
+    email: email.toLowerCase().trim(),
+    phone: phone ? phone.trim() : undefined,
     passwordHash,
     role: roleStr,
-    adminRoleId: isSuperAdmin ? null : adminRoleId
+    adminRoleId: roleStr === 'SUPER_ADMIN' ? null : adminRoleId || null
   });
+
+  const parts = name.trim().split(' ');
+  const firstName = parts[0] || '';
+  const lastName = parts.length > 1 ? parts.slice(1).join(' ') : '';
+
+  if (roleStr === 'ADMIN') {
+    await AdminProfile.create({
+      userId: user._id,
+      firstName,
+      lastName,
+      createdBy: req.user._id,
+    });
+    await logAdminAction({
+      userId: req.user._id,
+      action: 'ADMIN_CREATED',
+      entity: 'User',
+      entityId: String(user._id),
+      oldValue: null,
+      newValue: { name: user.name, email: user.email, role: user.role },
+      ipAddress: req.ip,
+    });
+  } else {
+    await SuperAdminProfile.create({
+      userId: user._id,
+      firstName,
+      lastName,
+    });
+  }
 
   const responseUser = user.toObject();
   delete responseUser.passwordHash;

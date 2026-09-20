@@ -72,7 +72,7 @@ async function runEcosystemSimulation() {
           name: `MLM Level ${i} Tester`,
           email,
           passwordHash: '$2a$10$wE9OaN5Pj98675432109876543210987654321098765432109876', // Mock bcrypt hash
-          role: 'USER',
+          role: 'CUSTOMER',
           referralCode: `REF_L${i}_${Date.now().toString().slice(-4)}`,
           referredBy: currentReferrer ? currentReferrer._id : null,
           referralPath: currentReferrer ? [...(currentReferrer.referralPath || []), currentReferrer._id] : [],

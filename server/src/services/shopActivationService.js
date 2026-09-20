@@ -95,7 +95,7 @@ export const shopActivationService = {
         if (!otherActiveShops) {
           shopkeeper.status = 'INACTIVE';
           await shopkeeper.save({ session });
-          await User.findByIdAndUpdate(shopkeeper.userId, { role: 'USER' }).session(session);
+          await User.findByIdAndUpdate(shopkeeper.userId, { role: ROLES.CUSTOMER }).session(session);
         }
 
         // Audit Log

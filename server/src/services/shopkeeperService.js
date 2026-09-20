@@ -383,7 +383,7 @@ export const shopkeeperService = {
             if (!otherActiveShops) {
               sk.status = 'INACTIVE';
               await sk.save({ session });
-              await User.findByIdAndUpdate(sk.userId, { role: 'USER' }).session(session);
+              await User.findByIdAndUpdate(sk.userId, { role: ROLES.CUSTOMER }).session(session);
             }
           }
         }

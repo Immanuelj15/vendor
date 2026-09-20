@@ -268,7 +268,7 @@ export const adminService = {
         ...v.toObject(),
         location: loc,
         business: bus,
-        bank: bank
+        bank: bank ? (bank.toMaskedJSON ? bank.toMaskedJSON() : bank) : null
       };
     }));
 
@@ -300,7 +300,14 @@ export const adminService = {
       .populate('changedBy', 'name email')
       .sort({ createdAt: -1 });
 
-    return { vendor, business, location, kyc, bank, statusHistory };
+    return { 
+      vendor, 
+      business, 
+      location, 
+      kyc, 
+      bank: bank ? (bank.toMaskedJSON ? bank.toMaskedJSON() : bank) : null, 
+      statusHistory 
+    };
   },
 
   async updateVendorStatus(vendorId, status, adminUser, reason = '') {
@@ -1055,11 +1062,11 @@ export const adminService = {
   },
 
   async getCustomerAnalytics(startDate, endDate) {
-    const total = await User.countDocuments({ role: 'USER' });
-    const active = await User.countDocuments({ role: 'USER', status: 'ACTIVE' });
-    const suspended = await User.countDocuments({ role: 'USER', status: 'SUSPENDED' });
-    const newCust = await User.countDocuments({ role: 'USER', createdAt: { $gte: startDate, $lte: endDate } });
-    const verified = await User.countDocuments({ role: 'USER', $or: [{ emailVerified: true }, { phoneVerified: true }] });
+    const total = await User.countDocuments({ role: { $in: [ROLES.CUSTOMER, 'USER'] } });
+    const active = await User.countDocuments({ role: { $in: [ROLES.CUSTOMER, 'USER'] }, status: 'ACTIVE' });
+    const suspended = await User.countDocuments({ role: { $in: [ROLES.CUSTOMER, 'USER'] }, status: 'SUSPENDED' });
+    const newCust = await User.countDocuments({ role: { $in: [ROLES.CUSTOMER, 'USER'] }, createdAt: { $gte: startDate, $lte: endDate } });
+    const verified = await User.countDocuments({ role: { $in: [ROLES.CUSTOMER, 'USER'] }, $or: [{ emailVerified: true }, { phoneVerified: true }] });
 
     const withOrders = await Order.distinct('userId', { createdAt: { $gte: startDate, $lte: endDate } });
 

@@ -13,6 +13,7 @@ import { vendorSubscriptionService } from './vendorSubscriptionService.js';
 import { VendorLedger } from '../models/VendorLedger.js';
 import { Settings } from '../models/Settings.js';
 import { moneyUtils } from '../utils/moneyUtils.js';
+import { logAdminAction } from './auditLogService.js';
 
 export const vendorService = {
   async registerVendor(userId, vendorData) {
@@ -46,7 +47,13 @@ export const vendorService = {
     const kyc = await VendorDocument.findOne({ vendorId: vendor._id });
     const bank = await VendorBankAccount.findOne({ vendorId: vendor._id });
     
-    return { vendor, business, location, kyc, bank };
+    return { 
+      vendor, 
+      business, 
+      location, 
+      kyc, 
+      bank: bank ? (bank.toMaskedJSON ? bank.toMaskedJSON() : bank) : null 
+    };
   },
 
   async updateVendorProfile(userId, payload) {
@@ -126,8 +133,17 @@ export const vendorService = {
     
     vendor.status = 'UNDER_REVIEW';
     await vendor.save();
+
+    await logAdminAction({
+      userId,
+      action: 'VENDOR_BANK_UPDATED',
+      entity: 'VendorBankAccount',
+      entityId: String(bank._id),
+      oldValue: null,
+      newValue: { bankName: bank.bankName, maskedAccount: bank.accountNumberMasked },
+    });
     
-    return bank;
+    return bank.toMaskedJSON ? bank.toMaskedJSON() : bank;
   },
 
   async getVendorStatusHistory(userId) {

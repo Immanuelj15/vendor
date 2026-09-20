@@ -93,7 +93,7 @@ export const getAdminMetrics = asyncWrapper(async (req, res) => {
     totalDeliveries,
     coinStats
   ] = await Promise.all([
-    User.countDocuments({ role: 'USER' }),
+    User.countDocuments({ role: { $in: ['CUSTOMER', 'USER'] } }),
     Vendor.countDocuments(),
     Product.countDocuments(),
     Order.countDocuments(),

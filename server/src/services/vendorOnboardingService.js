@@ -110,7 +110,7 @@ export const vendorOnboardingService = {
       business,
       location,
       kyc,
-      bank,
+      bank: bank ? (bank.toMaskedJSON ? bank.toMaskedJSON() : bank) : null,
     };
   },
 
@@ -183,7 +183,7 @@ export const vendorOnboardingService = {
       bank = new VendorBankAccount({ vendorId: vendor._id, ...payload });
     }
     await bank.save();
-    return bank;
+    return bank.toMaskedJSON ? bank.toMaskedJSON() : bank;
   },
 
   async submitFinal(userId, payload) {

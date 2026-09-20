@@ -11,18 +11,30 @@ import { Shop } from '../models/Shop.js';
 import { CustomerShopAttribution } from '../models/CustomerShopAttribution.js';
 import mongoose from 'mongoose';
 
+import { CustomerProfile } from '../models/CustomerProfile.js';
+import { UserAddress } from '../models/UserAddress.js';
+import { logAdminAction } from './auditLogService.js';
+
 export const authService = {
   async register(reqBody) {
-    const { name, email, password, phone, referralCode, shopQrToken } = reqBody;
+    const { 
+      name, firstName, lastName, email, password, phone, mobileNumber,
+      referralCode, shopQrToken, address, city, state, country, pincode 
+    } = reqBody;
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const cleanPhone = (mobileNumber || phone || '').trim() || undefined;
+    const fullName = (name || `${firstName || ''} ${lastName || ''}`.trim() || 'Customer').trim();
+
     const existingUser = await User.findOne({
-      $or: [{ email: email.toLowerCase() }, ...(phone ? [{ phone }] : [])],
+      $or: [{ email: normalizedEmail }, ...(cleanPhone ? [{ phone: cleanPhone }] : [])],
     });
 
     if (existingUser) {
-      if (existingUser.email === email.toLowerCase()) {
+      if (existingUser.email === normalizedEmail) {
         throw new ApiError(400, 'Email is already registered', ERROR_CODES.CONFLICT);
       }
-      if (phone && existingUser.phone === phone) {
+      if (cleanPhone && existingUser.phone === cleanPhone) {
         throw new ApiError(400, 'Phone number is already registered', ERROR_CODES.CONFLICT);
       }
     }
@@ -31,11 +43,13 @@ export const authService = {
       // Resolve referredBy user if referral code provided
       let referrer = null;
       let referralPath = [];
-      if (referralCode) {
-        referrer = await User.findOne({ referralCode: referralCode.toUpperCase() });
-        if (referrer) {
-          referralPath = [...referrer.referralPath, referrer._id];
+      if (referralCode && referralCode.trim()) {
+        const cleanRef = referralCode.trim().toUpperCase();
+        referrer = await User.findOne({ referralCode: cleanRef });
+        if (!referrer) {
+          throw new ApiError(400, 'Invalid referral code provided', ERROR_CODES.BAD_REQUEST);
         }
+        referralPath = [...(referrer.referralPath || []), referrer._id];
       }
 
       let qrCode = null;
@@ -60,8 +74,8 @@ export const authService = {
       const salt = await bcrypt.genSalt(10);
       const passwordHash = await bcrypt.hash(password, salt);
 
-      // Generate unique referral code for new user
-      let newReferralCode = User.generateReferralCode(name);
+      // Generate unique referral code for new customer
+      let newReferralCode = User.generateReferralCode(fullName);
       let isCodeUnique = false;
       let attempts = 0;
       while (!isCodeUnique && attempts < 5) {
@@ -69,24 +83,65 @@ export const authService = {
         if (!codeExists) {
           isCodeUnique = true;
         } else {
-          newReferralCode = User.generateReferralCode(name);
+          newReferralCode = User.generateReferralCode(fullName);
           attempts++;
         }
       }
 
+      // Explicitly enforce canonical role: CUSTOMER (rejects client role overrides)
       const user = new User({
-        name,
-        email: email.toLowerCase(),
-        phone: phone ? phone : undefined,
+        name: fullName,
+        email: normalizedEmail,
+        phone: cleanPhone,
         passwordHash,
         referralCode: newReferralCode,
         referredBy: referrer ? referrer._id : null,
         referralPath,
         role: ROLES.CUSTOMER,
         attributedShopId: shop ? shop._id : null,
-        // attributedVendorId will be set via service
       });
       await user.save();
+
+      // Create linked CustomerProfile (Role-specific customer data model)
+      let initialAddressId = null;
+      if (address || city || state || pincode) {
+        const userAddr = await UserAddress.create({
+          userId: user._id,
+          name: fullName,
+          phone: cleanPhone || '9999999999',
+          streetAddress: address || 'Primary Address',
+          city: city || 'City',
+          state: state || 'State',
+          postalCode: pincode || '000000',
+          country: country || 'India',
+          isDefault: true,
+        });
+        initialAddressId = userAddr._id;
+      }
+
+      const parsedFirstName = firstName || fullName.split(' ')[0] || '';
+      const parsedLastName = lastName || (fullName.split(' ').length > 1 ? fullName.split(' ').slice(1).join(' ') : '');
+
+      await CustomerProfile.create({
+        userId: user._id,
+        firstName: parsedFirstName,
+        lastName: parsedLastName,
+        referralCode: newReferralCode,
+        referredBy: referrer ? referrer._id : null,
+        addresses: initialAddressId ? [initialAddressId] : [],
+        defaultAddress: initialAddressId,
+      });
+
+      if (referrer) {
+        await logAdminAction({
+          userId: user._id,
+          action: 'REFERRAL_CREATED',
+          entity: 'User',
+          entityId: String(user._id),
+          oldValue: null,
+          newValue: { referrerId: String(referrer._id), referralCode: referralCode.trim().toUpperCase() },
+        });
+      }
 
       if (shop) {
         await CustomerShopAttribution.create({
@@ -128,7 +183,7 @@ export const authService = {
   },
 
   async login({ email, password, portal }) {
-    const user = await User.findOne({ email: email.toLowerCase() }).select('+passwordHash');
+    const user = await User.findOne({ email: email.toLowerCase().trim() }).select('+passwordHash');
     if (!user) {
       throw new ApiError(401, 'Invalid email or password', ERROR_CODES.UNAUTHORIZED);
     }
@@ -142,11 +197,10 @@ export const authService = {
       throw new ApiError(403, 'Your account has been suspended. Please contact platform support.', ERROR_CODES.FORBIDDEN);
     }
 
-    // Strict 4-Role Portal Validation
+    // Strict Canonical 4-Role Portal Validation
     if (portal) {
       if (portal === 'CUSTOMER') {
-        const isCustomer = user.role === ROLES.USER || user.role === ROLES.CUSTOMER;
-        if (!isCustomer) {
+        if (user.role !== ROLES.CUSTOMER) {
           if (user.role === ROLES.VENDOR) {
             throw new ApiError(403, 'This account is registered as a Vendor. Please use Vendor Login.', ERROR_CODES.FORBIDDEN);
           } else if (user.role === ROLES.ADMIN) {
@@ -159,7 +213,7 @@ export const authService = {
         }
       } else if (portal === 'VENDOR') {
         if (user.role !== ROLES.VENDOR) {
-          if (user.role === ROLES.USER || user.role === ROLES.CUSTOMER) {
+          if (user.role === ROLES.CUSTOMER) {
             throw new ApiError(403, 'This account is registered as a Customer. Please use Customer Login.', ERROR_CODES.FORBIDDEN);
           } else if (user.role === ROLES.ADMIN) {
             throw new ApiError(403, 'This account is registered as an Admin. Please use Admin Login.', ERROR_CODES.FORBIDDEN);
@@ -171,7 +225,7 @@ export const authService = {
         }
       } else if (portal === 'ADMIN') {
         if (user.role !== ROLES.ADMIN && user.role !== ROLES.SUPER_ADMIN) {
-          if (user.role === ROLES.USER || user.role === ROLES.CUSTOMER) {
+          if (user.role === ROLES.CUSTOMER) {
             throw new ApiError(403, 'This account is registered as a Customer. Please use Customer Login.', ERROR_CODES.FORBIDDEN);
           } else if (user.role === ROLES.VENDOR) {
             throw new ApiError(403, 'This account is registered as a Vendor. Please use Vendor Login.', ERROR_CODES.FORBIDDEN);

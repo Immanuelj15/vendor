@@ -120,13 +120,13 @@ router.use((req, res, next) => {
   next();
 });
 
-// Admin & Role Management
+// Admin & Role Management (Super Admin authorization strictly required for mutation)
 router.get('/roles', getRoles);
-router.post('/roles', createRole);
-router.put('/roles/:id', updateRole);
+router.post('/roles', authorize('SUPER_ADMIN'), createRole);
+router.put('/roles/:id', authorize('SUPER_ADMIN'), updateRole);
 router.get('/admins', getAdmins);
-router.post('/admins', createAdmin);
-router.put('/admins/:id', updateAdmin);
+router.post('/admins', authorize('SUPER_ADMIN'), createAdmin);
+router.put('/admins/:id', authorize('SUPER_ADMIN'), updateAdmin);
 
 // Vendor Network
 router.get('/vendors/:vendorId/network', requirePermission('vendor.view'), getVendorNetwork);

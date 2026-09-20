@@ -23,6 +23,8 @@ import { Commission } from '../models/Commission.js';
 import { Referral } from '../models/Referral.js';
 import { mlmRewardService } from '../services/mlmRewardService.js';
 import { notificationService } from '../services/notificationService.js';
+import { AdminProfile } from '../models/AdminProfile.js';
+import { SuperAdminProfile } from '../models/SuperAdminProfile.js';
 
 // ==========================================
 // 1. DASHBOARD & OVERVIEW
@@ -382,9 +384,28 @@ export const createAdmin = asyncWrapper(async (req, res) => {
     adminRoleId: role === ROLES.SUPER_ADMIN ? null : adminRoleId || null,
   });
 
+  const parts = name.trim().split(' ');
+  const firstName = parts[0] || '';
+  const lastName = parts.length > 1 ? parts.slice(1).join(' ') : '';
+
+  if (role === ROLES.ADMIN) {
+    await AdminProfile.create({
+      userId: newAdmin._id,
+      firstName,
+      lastName,
+      createdBy: req.user._id,
+    });
+  } else {
+    await SuperAdminProfile.create({
+      userId: newAdmin._id,
+      firstName,
+      lastName,
+    });
+  }
+
   await logAdminAction({
     userId: req.user._id,
-    action: role === ROLES.SUPER_ADMIN ? 'SUPER_ADMIN_CREATED_SUPER_ADMIN' : 'SUPER_ADMIN_CREATED_ADMIN',
+    action: role === ROLES.SUPER_ADMIN ? 'SUPER_ADMIN_CREATED_SUPER_ADMIN' : 'ADMIN_CREATED',
     entity: 'User',
     entityId: newAdmin._id,
     oldValue: null,

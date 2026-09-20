@@ -1,5 +1,44 @@
 import { AuditLog } from '../models/AuditLog.js';
 
+const SENSITIVE_KEYS = new Set([
+  'password',
+  'passwordhash',
+  'token',
+  'refreshtoken',
+  'refreshtokenhash',
+  'mfasecret',
+  'secret',
+  'otp',
+  'recoverycode',
+  'codehash',
+  'apikey',
+]);
+
+/**
+ * Recursively sanitize objects to ensure no sensitive authentication secrets
+ * or unmasked bank account numbers are stored in AuditLog.
+ */
+function sanitizeAuditData(data) {
+  if (!data || typeof data !== 'object') return data;
+  if (Array.isArray(data)) return data.map(sanitizeAuditData);
+
+  const clean = {};
+  for (const [key, value] of Object.entries(data)) {
+    const lowerKey = key.toLowerCase();
+    if (SENSITIVE_KEYS.has(lowerKey)) {
+      clean[key] = '[REDACTED]';
+    } else if (lowerKey === 'accountnumber' && typeof value === 'string') {
+      const raw = value.trim();
+      clean[key] = raw.length >= 4 ? `XXXXXX${raw.slice(-4)}` : 'XXXXXX';
+    } else if (typeof value === 'object' && value !== null) {
+      clean[key] = sanitizeAuditData(value);
+    } else {
+      clean[key] = value;
+    }
+  }
+  return clean;
+}
+
 /**
  * Log an immutable administrative action.
  * Supports both object style: ({ userId, action, entity, entityId, oldValue, newValue, ipAddress })
@@ -34,8 +73,8 @@ export const logAdminAction = async (...args) => {
       action,
       entity: entity || 'SYSTEM',
       entityId: entityId || '',
-      oldValue: oldValue || null,
-      newValue: newValue || null,
+      oldValue: sanitizeAuditData(oldValue),
+      newValue: sanitizeAuditData(newValue),
       ipAddress: ipAddress || '',
     });
   } catch (error) {
@@ -43,3 +82,5 @@ export const logAdminAction = async (...args) => {
     return null;
   }
 };
+
+export default logAdminAction;

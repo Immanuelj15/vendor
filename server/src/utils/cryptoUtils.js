@@ -38,6 +38,9 @@ export function decryptSecret(cipherText) {
   return decrypted;
 }
 
+export const encrypt = encryptSecret;
+export const decrypt = decryptSecret;
+
 /**
  * Hash recovery code with SHA-256
  */
