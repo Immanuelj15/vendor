@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser, clearAuthError } from '../../store/authSlice';
-import { Shield, Lock, Mail, ArrowRight, AlertCircle, Loader2, KeyRound } from 'lucide-react';
+import { Shield, Lock, Mail, ArrowRight, AlertCircle, Loader2, KeyRound, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export const AdminLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -25,14 +26,14 @@ export const AdminLogin = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !password) return;
-    const result = await dispatch(loginUser({ email, password, portal: 'ADMIN' }));
+    const result = await dispatch(loginUser({ email: email.trim(), password, portal: 'ADMIN' }));
     if (!result.error) {
       navigate('/admin/dashboard');
     }
   };
 
   return (
-    <div className="min-h-[88vh] flex items-center justify-center px-4 py-12 bg-gradient-to-b from-blue-50/70 via-slate-50 to-white">
+    <div className="min-h-[85vh] flex items-center justify-center px-4 py-12 bg-gradient-to-b from-blue-50/70 via-slate-50 to-white">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -47,9 +48,9 @@ export const AdminLogin = () => {
             <Shield className="w-7 h-7" />
           </div>
           <div className="inline-block px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-900 text-[10px] font-black uppercase tracking-wider mb-2">
-            Operations & Management
+            Operations & Approvals
           </div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Admin Portal</h2>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">FairKart Admin Portal</h2>
           <p className="text-xs text-slate-500 mt-1">Vendor/customer approvals, operations, orders & payouts</p>
         </div>
 
@@ -82,17 +83,37 @@ export const AdminLogin = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">Password</label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-bold text-slate-700">Password</label>
+              <a
+                href="#forgot"
+                onClick={(e) => {
+                  e.preventDefault();
+                  alert('Admin password reset is restricted. Please contact Super Admin.');
+                }}
+                className="text-[11px] text-blue-600 hover:underline font-semibold"
+              >
+                Forgot Password?
+              </a>
+            </div>
             <div className="relative">
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-slate-50 text-xs text-slate-800 rounded-xl px-4 py-2.5 pl-10 border border-slate-200 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors"
+                className="w-full bg-slate-50 text-xs text-slate-800 rounded-xl px-4 py-2.5 pl-10 pr-10 border border-slate-200 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors"
               />
               <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600 transition-colors"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
           </div>
 
@@ -108,7 +129,7 @@ export const AdminLogin = () => {
             ) : (
               <>
                 <KeyRound className="w-4 h-4" />
-                <span>Sign In to Admin Portal</span>
+                <span>Sign In</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
@@ -117,15 +138,8 @@ export const AdminLogin = () => {
 
         <div className="mt-6 pt-5 border-t border-slate-100 flex flex-col gap-2.5 text-center">
           <p className="text-[11px] text-slate-400">
-            Internal Operations access only. Unauthorized access attempts are monitored and logged.
+            Internal Operations access only. Admin accounts are provisioned exclusively by Super Admin.
           </p>
-          <div className="flex items-center justify-center gap-4 text-[11px] text-slate-400 mt-2">
-            <Link to="/customer/login" className="hover:text-blue-600 transition-colors">🛒 Customer</Link>
-            <span>•</span>
-            <Link to="/vendor/login" className="hover:text-blue-600 transition-colors">🏪 Vendor</Link>
-            <span>•</span>
-            <Link to="/super-admin/login" className="hover:text-blue-600 transition-colors">👑 Super Admin</Link>
-          </div>
         </div>
       </motion.div>
     </div>

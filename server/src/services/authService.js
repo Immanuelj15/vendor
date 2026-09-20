@@ -183,14 +183,19 @@ export const authService = {
   },
 
   async login({ email, password, portal }) {
-    const user = await User.findOne({ email: email.toLowerCase().trim() }).select('+passwordHash');
+    const input = (email || '').trim();
+    const query = input.includes('@')
+      ? { email: input.toLowerCase() }
+      : { $or: [{ phone: input }, { email: input.toLowerCase() }] };
+
+    const user = await User.findOne(query).select('+passwordHash');
     if (!user) {
-      throw new ApiError(401, 'Invalid email or password', ERROR_CODES.UNAUTHORIZED);
+      throw new ApiError(401, 'Invalid email, mobile number or password', ERROR_CODES.UNAUTHORIZED);
     }
 
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      throw new ApiError(401, 'Invalid email or password', ERROR_CODES.UNAUTHORIZED);
+      throw new ApiError(401, 'Invalid email, mobile number or password', ERROR_CODES.UNAUTHORIZED);
     }
 
     if (user.status === USER_STATUS.SUSPENDED) {

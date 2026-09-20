@@ -28,6 +28,7 @@ import ScanProcessor from '../pages/ScanProcessor';
 
 // Auth Pages
 import { Login } from '../pages/Login';
+import { PortalGateway } from '../pages/PortalGateway';
 import { Register } from '../pages/Register';
 import { CustomerLogin } from '../pages/auth/CustomerLogin';
 import { VendorLogin } from '../pages/auth/VendorLogin';
@@ -114,12 +115,17 @@ export const AppRoutes = () => {
       {/* ------------------------------------------------------------- */}
       {/* 1. PUBLIC PORTAL ENTRY POINTS & COMMON AUTH                    */}
       {/* ------------------------------------------------------------- */}
+      <Route path="/login" element={<CustomerLogin />} />
+      <Route path="/register" element={<Register />} />
       <Route path="/customer/login" element={<CustomerLogin />} />
       <Route path="/customer/register" element={<Register />} />
       <Route path="/vendor/login" element={<VendorLogin />} />
       <Route path="/vendor/register" element={<VendorOnboarding />} />
+      <Route path="/vendor/apply" element={<VendorOnboarding />} />
       <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/admin/super-admin/login" element={<SuperAdminLogin />} />
       <Route path="/super-admin/login" element={<SuperAdminLogin />} />
+      <Route path="/portals" element={<PortalGateway />} />
       <Route path="/unauthorized" element={<Unauthorized />} />
 
       {/* ------------------------------------------------------------- */}
@@ -271,8 +277,9 @@ export const AppRoutes = () => {
       {/* ------------------------------------------------------------- */}
       <Route path="/" element={<MainLayout />}>
         <Route index element={<Home />} />
-        <Route path="login" element={<Login />} />
+        <Route path="login" element={<CustomerLogin />} />
         <Route path="register" element={<Register />} />
+        <Route path="portals" element={<PortalGateway />} />
         <Route path="products" element={<Products />} />
         <Route path="products/:slug" element={<ProductDetail />} />
         <Route path="cart" element={<Cart />} />

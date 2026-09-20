@@ -14,7 +14,7 @@ import {
 export const registerSchema = customerRegistrationSchema;
 
 export const loginSchema = z.object({
-  email: z.string().email('Invalid email address').toLowerCase().trim(),
+  email: z.string().min(1, 'Email or mobile number is required').trim(),
   password: z.string().min(1, 'Password is required'),
   portal: z.enum(['CUSTOMER', 'VENDOR', 'ADMIN', 'SUPER_ADMIN']).optional(),
 });

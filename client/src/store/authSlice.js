@@ -6,6 +6,13 @@ export const loginUser = createAsyncThunk(
   async (credentials, { rejectWithValue }) => {
     try {
       const response = await api.post('/auth/login', credentials);
+      if (response.data.data?.mfaRequired) {
+        return {
+          mfaRequired: true,
+          mfaToken: response.data.data.mfaToken,
+          user: response.data.data.user,
+        };
+      }
       const { user, accessToken } = response.data.data;
       setAccessToken(accessToken);
       return { user, accessToken };
@@ -16,6 +23,22 @@ export const loginUser = createAsyncThunk(
         const messages = errorData.errors.map((e) => (typeof e === 'object' && e.message ? e.message : String(e)));
         errorMsg = messages.join('. ');
       }
+      return rejectWithValue(errorMsg);
+    }
+  }
+);
+
+export const verifyMfa = createAsyncThunk(
+  'auth/verifyMfa',
+  async ({ mfaToken, code }, { rejectWithValue }) => {
+    try {
+      const response = await api.post('/auth/mfa/verify', { mfaToken, code });
+      const { user, accessToken } = response.data.data;
+      setAccessToken(accessToken);
+      return { user, accessToken };
+    } catch (err) {
+      const errorData = err.response?.data;
+      let errorMsg = errorData?.message || 'MFA verification failed';
       return rejectWithValue(errorMsg);
     }
   }
@@ -104,11 +127,38 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.isLoading = false;
+        if (action.payload.mfaRequired) {
+          state.isAuthenticated = false;
+          state.mfaPending = true;
+          state.mfaToken = action.payload.mfaToken;
+          state.user = action.payload.user;
+        } else {
+          state.isAuthenticated = true;
+          state.mfaPending = false;
+          state.mfaToken = null;
+          state.user = action.payload.user;
+          state.accessToken = action.payload.accessToken;
+        }
+      })
+      .addCase(loginUser.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+
+      // Verify MFA
+      .addCase(verifyMfa.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(verifyMfa.fulfilled, (state, action) => {
+        state.isLoading = false;
         state.isAuthenticated = true;
+        state.mfaPending = false;
+        state.mfaToken = null;
         state.user = action.payload.user;
         state.accessToken = action.payload.accessToken;
       })
-      .addCase(loginUser.rejected, (state, action) => {
+      .addCase(verifyMfa.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       })

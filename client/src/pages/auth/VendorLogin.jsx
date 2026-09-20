@@ -2,12 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser, clearAuthError } from '../../store/authSlice';
-import { Store, Lock, Mail, ArrowRight, AlertCircle, Loader2, Clock, Ban, CheckCircle2, ShieldAlert } from 'lucide-react';
+import {
+  Store,
+  Lock,
+  Mail,
+  ArrowRight,
+  AlertCircle,
+  Loader2,
+  Clock,
+  Ban,
+  ShieldAlert,
+  Eye,
+  EyeOff
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const VendorLogin = () => {
-  const [email, setEmail] = useState('');
+  const [emailOrPhone, setEmailOrPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [vendorNotice, setVendorNotice] = useState(null);
 
   const dispatch = useDispatch();
@@ -33,12 +46,20 @@ export const VendorLogin = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email || !password) return;
+    if (!emailOrPhone.trim() || !password) return;
     setVendorNotice(null);
-    const result = await dispatch(loginUser({ email, password, portal: 'VENDOR' }));
+
+    const result = await dispatch(
+      loginUser({
+        email: emailOrPhone.trim(),
+        password,
+        portal: 'VENDOR',
+      })
+    );
+
     if (!result.error) {
       const u = result.payload.user;
-      if (u.vendor && u.vendor.status !== 'APPROVED') {
+      if (u?.vendor && u.vendor.status !== 'APPROVED') {
         if (u.vendor.status === 'PENDING' || u.vendor.status === 'UNDER_REVIEW') {
           setVendorNotice({
             type: 'PENDING',
@@ -65,7 +86,7 @@ export const VendorLogin = () => {
   };
 
   return (
-    <div className="min-h-[88vh] flex items-center justify-center px-4 py-12 bg-gradient-to-b from-blue-50/60 via-slate-50 to-white">
+    <div className="min-h-[85vh] flex items-center justify-center px-4 py-12 bg-gradient-to-b from-blue-50/60 via-slate-50 to-white">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -82,8 +103,8 @@ export const VendorLogin = () => {
           <div className="inline-block px-2.5 py-0.5 rounded-full bg-blue-100/70 text-blue-800 text-[10px] font-black uppercase tracking-wider mb-2">
             Vendor Merchant Portal
           </div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Welcome back, grow your business.</h2>
-          <p className="text-xs text-slate-500 mt-1">Manage products, orders, commission payouts & sales analytics</p>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">FairKart Vendor Portal</h2>
+          <p className="text-xs text-slate-500 mt-1">Manage Store & Products</p>
         </div>
 
         {/* Vendor Status Notice (PENDING / REJECTED / SUSPENDED) */}
@@ -128,14 +149,14 @@ export const VendorLogin = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">Registered Vendor Email</label>
+            <label className="block text-xs font-bold text-slate-700 mb-1.5">Vendor Email / Mobile</label>
             <div className="relative">
               <input
-                type="email"
+                type="text"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="store@vendor.com"
+                value={emailOrPhone}
+                onChange={(e) => setEmailOrPhone(e.target.value)}
+                placeholder="store@vendor.com or +91 9876543210"
                 className="w-full bg-slate-50 text-xs text-slate-800 rounded-xl px-4 py-2.5 pl-10 border border-slate-200 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors"
               />
               <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
@@ -145,20 +166,35 @@ export const VendorLogin = () => {
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="block text-xs font-bold text-slate-700">Password</label>
-              <a href="#forgot" onClick={(e) => { e.preventDefault(); alert('Please contact merchant administration or reset using registered email.'); }} className="text-[11px] text-blue-600 hover:underline font-semibold">
-                Forgot password?
+              <a
+                href="#forgot"
+                onClick={(e) => {
+                  e.preventDefault();
+                  alert('Please contact merchant administration or reset using registered email.');
+                }}
+                className="text-[11px] text-blue-600 hover:underline font-semibold"
+              >
+                Forgot Password?
               </a>
             </div>
             <div className="relative">
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-slate-50 text-xs text-slate-800 rounded-xl px-4 py-2.5 pl-10 border border-slate-200 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors"
+                className="w-full bg-slate-50 text-xs text-slate-800 rounded-xl px-4 py-2.5 pl-10 pr-10 border border-slate-200 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors"
               />
               <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600 transition-colors"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
           </div>
 
@@ -173,7 +209,7 @@ export const VendorLogin = () => {
               <Loader2 className="w-5 h-5 animate-spin" />
             ) : (
               <>
-                <span>Sign In to Vendor Dashboard</span>
+                <span>Sign In</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
@@ -182,16 +218,11 @@ export const VendorLogin = () => {
 
         <div className="mt-6 pt-5 border-t border-slate-100 flex flex-col gap-2.5 text-center">
           <p className="text-xs text-slate-500">
-            Want to sell on FairKart?{' '}
-            <Link to="/vendor/onboarding" className="text-blue-600 hover:underline font-bold">
-              Register New Store
+            New Vendor?{' '}
+            <Link to="/vendor/register" className="text-blue-600 hover:underline font-bold">
+              Apply as Vendor
             </Link>
           </p>
-          <div className="flex items-center justify-center gap-4 text-[11px] text-slate-400 mt-2">
-            <Link to="/customer/login" className="hover:text-blue-600 transition-colors">🛒 Customer Login</Link>
-            <span>•</span>
-            <Link to="/admin/login" className="hover:text-blue-600 transition-colors">🛡️ Admin Login</Link>
-          </div>
         </div>
       </motion.div>
     </div>
