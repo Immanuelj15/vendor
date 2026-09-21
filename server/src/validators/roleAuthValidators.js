@@ -96,6 +96,21 @@ export const vendorRegistrationSchema = z
     latitude: z.number().optional(),
     longitude: z.number().optional(),
     locationConsent: z.boolean().optional(),
+    // KYC Documents
+    identityDocumentType: z.string().trim().optional().nullable().or(z.literal('')),
+    identityDocumentNumber: z.string().trim().optional().nullable().or(z.literal('')),
+    identityDocumentUpload: z.string().optional().nullable().or(z.literal('')),
+    panDocumentUpload: z.string().optional().nullable().or(z.literal('')),
+    gstCertificateUpload: z.string().optional().nullable().or(z.literal('')),
+    businessProofUpload: z.string().optional().nullable().or(z.literal('')),
+    // Banking Details
+    accountHolderName: z.string().trim().optional().nullable().or(z.literal('')),
+    bankName: z.string().trim().optional().nullable().or(z.literal('')),
+    accountNumber: z.string().trim().optional().nullable().or(z.literal('')),
+    ifscCode: z.string().trim().optional().nullable().or(z.literal('')),
+    branchName: z.string().trim().optional().nullable().or(z.literal('')),
+    upiId: z.string().trim().optional().nullable().or(z.literal('')),
+    bankProofUpload: z.string().optional().nullable().or(z.literal('')),
     // Referral
     referralCode: z.string().trim().optional().nullable().or(z.literal('')),
     termsAccepted: z.boolean().optional(),

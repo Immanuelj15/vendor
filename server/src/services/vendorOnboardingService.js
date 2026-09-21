@@ -34,11 +34,12 @@ export const vendorOnboardingService = {
       throw new ApiError(400, 'Email or Phone is already registered', ERROR_CODES.CONFLICT);
     }
 
+    let user, vendor;
     try {
       const salt = await bcrypt.genSalt(10);
       const passwordHash = await bcrypt.hash(password, salt);
 
-      const user = new User({
+      user = new User({
         name,
         email: email.toLowerCase(),
         phone,
@@ -49,7 +50,7 @@ export const vendorOnboardingService = {
 
       const slug = (storeName || name).toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Math.random().toString(36).substring(7);
 
-      const vendor = new Vendor({
+      vendor = new Vendor({
         userId: user._id,
         storeName: storeName || name + " Store",
         slug,
@@ -76,13 +77,19 @@ export const vendorOnboardingService = {
 
       const kyc = new VendorDocument({
         vendorId: vendor._id,
-        identityDocumentType, identityDocumentNumber, identityDocumentUpload, panDocumentUpload
+        identityDocumentType: identityDocumentType || 'AADHAAR',
+        identityDocumentNumber: identityDocumentNumber || 'N/A',
+        identityDocumentUpload: identityDocumentUpload || 'pending_verification',
+        panDocumentUpload: panDocumentUpload || ''
       });
       await kyc.save();
 
       const bank = new VendorBankAccount({
         vendorId: vendor._id,
-        accountHolderName, bankName, accountNumber, ifscCode
+        accountHolderName: accountHolderName || name,
+        bankName: bankName || 'Standard Bank',
+        accountNumber: accountNumber || '0000000000',
+        ifscCode: ifscCode || 'BANK0000001'
       });
       await bank.save();
 
@@ -92,6 +99,20 @@ export const vendorOnboardingService = {
 
       return { user: userResponse, vendor };
     } catch (err) {
+      if (user?._id) {
+        try {
+          await User.deleteOne({ _id: user._id });
+          if (vendor?._id) {
+            await Vendor.deleteOne({ _id: vendor._id });
+            await VendorBusiness.deleteMany({ vendorId: vendor._id });
+            await VendorAddress.deleteMany({ vendorId: vendor._id });
+            await VendorDocument.deleteMany({ vendorId: vendor._id });
+            await VendorBankAccount.deleteMany({ vendorId: vendor._id });
+          }
+        } catch (cleanupErr) {
+          console.error('Registration rollback error:', cleanupErr);
+        }
+      }
       throw err;
     }
   },
