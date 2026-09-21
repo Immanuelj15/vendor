@@ -54,12 +54,13 @@ export const customerNavItems = [
 export const customerMobileBottomNav = [
   { name: 'Home', path: '/', icon: Home },
   { name: 'Catalog', path: '/products', icon: ShoppingBag },
-  { name: 'Rewards', path: '/account/spin', icon: Dices },
+  { name: 'Dashboard', path: '/customer/dashboard', icon: LayoutDashboard },
   { name: 'Orders', path: '/account/orders', icon: Package },
   { name: 'Account', path: '/account/profile', icon: User },
 ];
 
 export const customerDrawerSecondaryItems = [
+  { name: 'Customer Dashboard', path: '/customer/dashboard', icon: LayoutDashboard },
   { name: 'VIP Pass', path: '/account/subscription', icon: Crown },
   { name: 'Spin & Win', path: '/account/spin', icon: Dices },
   { name: 'Referral Network', path: '/account/referrals', icon: Share2 },
@@ -70,6 +71,7 @@ export const customerDrawerSecondaryItems = [
 ];
 
 export const customerProfileMenu = [
+  { name: 'Customer Dashboard', path: '/customer/dashboard', icon: LayoutDashboard },
   { name: 'My Profile', path: '/account/profile', icon: User },
   { name: 'My Orders', path: '/account/orders', icon: Package },
   { name: 'My Addresses', path: '/account/addresses', icon: MapPin },

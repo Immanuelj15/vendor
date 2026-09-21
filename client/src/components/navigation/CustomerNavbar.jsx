@@ -19,6 +19,7 @@ import {
   X,
   Menu,
   ShoppingCart,
+  LayoutDashboard,
 } from 'lucide-react';
 import { logoutUser } from '../../store/authSlice';
 import { NotificationMenu } from './NotificationMenu';
@@ -96,6 +97,19 @@ export const CustomerNavbar = ({ onOpenMobileMenu }) => {
 
             {/* Desktop Navbar Links */}
             <nav className="hidden lg:flex items-center gap-1 xl:gap-2 text-xs font-semibold text-slate-600 border-l border-slate-200 pl-6">
+              {isAuthenticated && (user?.role === 'CUSTOMER' || user?.role === 'USER') && (
+                <Link
+                  to="/customer/dashboard"
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
+                    location.pathname === '/customer/dashboard'
+                      ? 'text-blue-600 bg-blue-50 font-bold'
+                      : 'text-blue-600 bg-blue-50/70 hover:bg-blue-100/80 font-bold border border-blue-200/60'
+                  }`}
+                >
+                  <LayoutDashboard className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Dashboard</span>
+                </Link>
+              )}
               {customerNavItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = location.pathname === item.path;
@@ -146,6 +160,18 @@ export const CustomerNavbar = ({ onOpenMobileMenu }) => {
           {/* Right: Actions (Cart, Notifications, Coins, Profile / Login) */}
           <div className="flex items-center gap-2 sm:gap-3">
             
+            {/* Direct Dashboard Button for Customer */}
+            {isAuthenticated && (user?.role === 'CUSTOMER' || user?.role === 'USER') && (
+              <Link
+                to="/customer/dashboard"
+                title="Customer Dashboard"
+                className="hidden sm:flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-full transition-all text-xs font-bold shadow-xs shrink-0 shadow-blue-500/20"
+              >
+                <LayoutDashboard className="w-3.5 h-3.5 text-white" />
+                <span>Dashboard</span>
+              </Link>
+            )}
+
             {/* Coins Balance Pill (Authenticated Customer) */}
             {isAuthenticated && (
               <Link
@@ -217,14 +243,19 @@ export const CustomerNavbar = ({ onOpenMobileMenu }) => {
                       <div className="space-y-0.5 py-1">
                         {customerProfileMenu.map((item) => {
                           const Icon = item.icon;
+                          const isDashboard = item.path === '/customer/dashboard';
                           return (
                             <Link
                               key={item.name}
                               to={item.path}
                               onClick={() => setUserMenuOpen(false)}
-                              className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 hover:text-slate-900 font-medium transition"
+                              className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium transition ${
+                                isDashboard
+                                  ? 'bg-blue-50/80 text-blue-700 font-bold hover:bg-blue-100'
+                                  : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+                              }`}
                             >
-                              <Icon className="w-4 h-4 text-slate-400" />
+                              <Icon className={`w-4 h-4 ${isDashboard ? 'text-blue-600' : 'text-slate-400'}`} />
                               <span>{item.name}</span>
                             </Link>
                           );

@@ -290,6 +290,8 @@ export const AppRoutes = () => {
         <Route path="v/:token" element={<ScanProcessor />} />
 
         {/* Legacy / Shared Account Shortcuts for smooth user experience */}
+        <Route path="dashboard" element={<Navigate to="/customer/dashboard" replace />} />
+        <Route path="account/dashboard" element={<Navigate to="/customer/dashboard" replace />} />
         <Route path="account/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
         <Route path="account/orders/:id" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
         <Route path="account/shop" element={<ProtectedRoute><CustomerShop /></ProtectedRoute>} />

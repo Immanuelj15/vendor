@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, LogOut, ShoppingBag, Crown } from 'lucide-react';
+import { X, LogOut, ShoppingBag, Crown, LayoutDashboard } from 'lucide-react';
 import { logoutUser } from '../../store/authSlice';
 import {
   customerMobileBottomNav,
@@ -123,6 +123,14 @@ export const CustomerMobileNav = ({ isOpen, onClose }) => {
                       <p className="text-[11px] text-slate-500 truncate">{user?.email}</p>
                     </div>
                   </div>
+                  <Link
+                    to="/customer/dashboard"
+                    onClick={onClose}
+                    className="mt-3 w-full py-2 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs flex items-center justify-center gap-2 transition"
+                  >
+                    <LayoutDashboard className="w-4 h-4" />
+                    <span>Go to Customer Dashboard</span>
+                  </Link>
                 </div>
               ) : (
                 <div className="p-4 border-b border-slate-100 bg-blue-50/40 flex items-center gap-2">
