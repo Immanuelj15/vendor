@@ -1,5 +1,14 @@
 import express from 'express';
-import { getStates, getDistricts, getTaluks, createTerritory, updateTerritory, deactivateTerritory } from '../controllers/territoryController.js';
+import {
+  getStates,
+  getAllDistricts,
+  getDistricts,
+  getAllTaluks,
+  getTaluks,
+  createTerritory,
+  updateTerritory,
+  deactivateTerritory,
+} from '../controllers/territoryController.js';
 import { authenticate } from '../middleware/authMiddleware.js';
 import { authorize } from '../middleware/roleMiddleware.js';
 
@@ -7,6 +16,8 @@ const router = express.Router();
 
 // Public / General read routes
 router.get('/states', getStates);
+router.get('/districts', getAllDistricts);
+router.get('/taluks', getAllTaluks);
 router.get('/states/:stateId/districts', getDistricts);
 router.get('/districts/:districtId/taluks', getTaluks);
 

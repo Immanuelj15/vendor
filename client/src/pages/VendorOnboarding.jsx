@@ -93,11 +93,9 @@ export const VendorOnboarding = () => {
   });
 
   const [statesList, setStatesList] = useState([]);
-  const [districtsList, setDistrictsList] = useState([]);
-  const [taluksList, setTaluksList] = useState([]);
-  const [loadingStates, setLoadingStates] = useState(false);
-  const [loadingDistricts, setLoadingDistricts] = useState(false);
-  const [loadingTaluks, setLoadingTaluks] = useState(false);
+  const [allDistricts, setAllDistricts] = useState([]);
+  const [allTaluks, setAllTaluks] = useState([]);
+  const [loadingTerritories, setLoadingTerritories] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem('token') || localStorage.getItem('fk_access_token');
@@ -112,89 +110,92 @@ export const VendorOnboarding = () => {
         .catch(() => {});
     }
 
-    setLoadingStates(true);
-    api.get('/territories/states')
-      .then((res) => {
-        setStatesList(res.data?.data?.states || []);
+    setLoadingTerritories(true);
+    Promise.all([
+      api.get('/territories/states'),
+      api.get('/territories/districts'),
+      api.get('/territories/taluks'),
+    ])
+      .then(([statesRes, districtsRes, taluksRes]) => {
+        setStatesList(statesRes.data?.data?.states || []);
+        setAllDistricts(districtsRes.data?.data?.districts || []);
+        setAllTaluks(taluksRes.data?.data?.taluks || []);
       })
       .catch((err) => {
-        console.error('Failed to load states:', err);
+        console.error('Failed to load territories:', err);
       })
       .finally(() => {
-        setLoadingStates(false);
+        setLoadingTerritories(false);
       });
   }, []);
 
-  useEffect(() => {
-    if (!formData.state) {
-      setDistrictsList([]);
-      return;
-    }
-    setLoadingDistricts(true);
-    api.get(`/territories/states/${formData.state}/districts`)
-      .then((res) => {
-        setDistrictsList(res.data?.data?.districts || []);
-      })
-      .catch((err) => {
-        console.error('Failed to load districts:', err);
-      })
-      .finally(() => {
-        setLoadingDistricts(false);
-      });
-  }, [formData.state]);
+  // Filtered lists based on selection
+  const availableDistricts = formData.state
+    ? allDistricts.filter((d) => String(d.parentTerritory) === String(formData.state))
+    : allDistricts;
 
-  useEffect(() => {
-    if (!formData.district) {
-      setTaluksList([]);
-      return;
-    }
-    setLoadingTaluks(true);
-    api.get(`/territories/districts/${formData.district}/taluks`)
-      .then((res) => {
-        setTaluksList(res.data?.data?.taluks || []);
+  const availableTaluks = formData.district
+    ? allTaluks.filter((t) => String(t.parentTerritory) === String(formData.district))
+    : formData.state
+    ? allTaluks.filter((t) => {
+        const parentDistrict = allDistricts.find((d) => String(d._id) === String(t.parentTerritory));
+        return parentDistrict && String(parentDistrict.parentTerritory) === String(formData.state);
       })
-      .catch((err) => {
-        console.error('Failed to load taluks:', err);
-      })
-      .finally(() => {
-        setLoadingTaluks(false);
-      });
-  }, [formData.district]);
+    : allTaluks;
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
     if (name === 'state') {
+      const currentDistrict = allDistricts.find((d) => String(d._id) === String(formData.district));
+      const districtBelongs = currentDistrict && String(currentDistrict.parentTerritory) === String(value);
+
       setFormData((prev) => ({
         ...prev,
         state: value,
-        district: '',
-        talukArea: '',
-        pincode: '',
+        district: districtBelongs ? prev.district : '',
+        talukArea: districtBelongs ? prev.talukArea : '',
+        pincode: districtBelongs ? prev.pincode : '',
       }));
-      setDistrictsList([]);
-      setTaluksList([]);
       return;
     }
 
     if (name === 'district') {
+      const selectedDistrict = allDistricts.find((d) => String(d._id) === String(value));
+      const newState = selectedDistrict ? (selectedDistrict.parentTerritory || prev.state) : formData.state;
+
+      const currentTaluk = allTaluks.find((t) => String(t._id) === String(formData.talukArea));
+      const talukBelongs = currentTaluk && String(currentTaluk.parentTerritory) === String(value);
+
       setFormData((prev) => ({
         ...prev,
+        state: selectedDistrict?.parentTerritory || prev.state,
         district: value,
-        talukArea: '',
-        pincode: '',
+        talukArea: talukBelongs ? prev.talukArea : '',
+        pincode: talukBelongs ? prev.pincode : '',
       }));
-      setTaluksList([]);
       return;
     }
 
     if (name === 'talukArea') {
-      const selectedTaluk = taluksList.find((t) => t._id === value);
-      const autoPincode = selectedTaluk?.pincodes?.[0] || '';
+      const selectedTaluk = allTaluks.find((t) => String(t._id) === String(value));
+      if (selectedTaluk) {
+        const parentDistrict = allDistricts.find((d) => String(d._id) === String(selectedTaluk.parentTerritory));
+        const autoPincode = selectedTaluk.pincodes?.[0] || '';
+
+        setFormData((prev) => ({
+          ...prev,
+          talukArea: value,
+          district: selectedTaluk.parentTerritory || prev.district,
+          state: parentDistrict?.parentTerritory || prev.state,
+          pincode: autoPincode || prev.pincode,
+        }));
+        return;
+      }
+
       setFormData((prev) => ({
         ...prev,
         talukArea: value,
-        pincode: autoPincode ? autoPincode : prev.pincode,
       }));
       return;
     }
@@ -457,9 +458,10 @@ export const VendorOnboarding = () => {
                         name="state"
                         type="select"
                         required
-                        disabled={loadingStates}
                       >
-                        <option value="">{loadingStates ? 'Loading States...' : 'Select State'}</option>
+                        <option value="">
+                          {loadingTerritories ? 'Loading States...' : 'Select State'}
+                        </option>
                         {statesList.map((s) => (
                           <option key={s._id} value={s._id}>
                             {s.name}
@@ -473,18 +475,13 @@ export const VendorOnboarding = () => {
                         name="district"
                         type="select"
                         required
-                        disabled={!formData.state || loadingDistricts}
                       >
                         <option value="">
-                          {!formData.state
-                            ? 'Select State First'
-                            : loadingDistricts
-                            ? 'Loading Districts...'
-                            : 'Select District'}
+                          {loadingTerritories ? 'Loading Districts...' : 'Select District'}
                         </option>
-                        {districtsList.map((d) => (
+                        {availableDistricts.map((d) => (
                           <option key={d._id} value={d._id}>
-                            {d.name}
+                            {formData.state ? d.name : `${d.name} (${d.state || ''})`}
                           </option>
                         ))}
                       </InputField>
@@ -495,18 +492,13 @@ export const VendorOnboarding = () => {
                         name="talukArea"
                         type="select"
                         required
-                        disabled={!formData.district || loadingTaluks}
                       >
                         <option value="">
-                          {!formData.district
-                            ? 'Select District First'
-                            : loadingTaluks
-                            ? 'Loading Taluks / Areas...'
-                            : 'Select Taluk / Area'}
+                          {loadingTerritories ? 'Loading Taluks / Areas...' : 'Select Taluk / Area'}
                         </option>
-                        {taluksList.map((t) => (
+                        {availableTaluks.map((t) => (
                           <option key={t._id} value={t._id}>
-                            {t.name}
+                            {formData.district ? t.name : `${t.name} (${t.district || ''})`}
                           </option>
                         ))}
                       </InputField>

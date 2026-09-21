@@ -7,10 +7,20 @@ export const getStates = asyncWrapper(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, { states }, 'States retrieved'));
 });
 
+export const getAllDistricts = asyncWrapper(async (req, res) => {
+  const districts = await Territory.find({ type: 'DISTRICT', status: 'ACTIVE' }).sort({ name: 1 });
+  return res.status(200).json(new ApiResponse(200, { districts }, 'Districts retrieved'));
+});
+
 export const getDistricts = asyncWrapper(async (req, res) => {
   const { stateId } = req.params;
   const districts = await Territory.find({ type: 'DISTRICT', parentTerritory: stateId, status: 'ACTIVE' }).sort({ name: 1 });
   return res.status(200).json(new ApiResponse(200, { districts }, 'Districts retrieved'));
+});
+
+export const getAllTaluks = asyncWrapper(async (req, res) => {
+  const taluks = await Territory.find({ type: 'TALUK', status: 'ACTIVE' }).sort({ name: 1 });
+  return res.status(200).json(new ApiResponse(200, { taluks }, 'Taluks retrieved'));
 });
 
 export const getTaluks = asyncWrapper(async (req, res) => {
