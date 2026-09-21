@@ -7,6 +7,8 @@ import { CustomerLayout } from '../layouts/CustomerLayout';
 import { VendorLayout } from '../layouts/VendorLayout';
 import { AdminLayout } from '../layouts/AdminLayout';
 import { SuperAdminLayout } from '../layouts/SuperAdminLayout';
+import { AuthLayoutWrapper } from '../layouts/AuthLayoutWrapper';
+import { NotFound } from '../pages/NotFound';
 
 // Route Guards
 import {
@@ -113,20 +115,23 @@ export const AppRoutes = () => {
   return (
     <Routes>
       {/* ------------------------------------------------------------- */}
-      {/* 1. PUBLIC PORTAL ENTRY POINTS & COMMON AUTH                    */}
+      {/* 1. PUBLIC PORTAL ENTRY POINTS & COMMON AUTH (AuthLayout)       */}
       {/* ------------------------------------------------------------- */}
-      <Route path="/login" element={<CustomerLogin />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/customer/login" element={<CustomerLogin />} />
-      <Route path="/customer/register" element={<Register />} />
-      <Route path="/vendor/login" element={<VendorLogin />} />
-      <Route path="/vendor/register" element={<VendorOnboarding />} />
-      <Route path="/vendor/apply" element={<VendorOnboarding />} />
-      <Route path="/admin/login" element={<AdminLogin />} />
-      <Route path="/admin/super-admin/login" element={<SuperAdminLogin />} />
-      <Route path="/super-admin/login" element={<SuperAdminLogin />} />
-      <Route path="/portals" element={<PortalGateway />} />
-      <Route path="/unauthorized" element={<Unauthorized />} />
+      <Route element={<AuthLayoutWrapper />}>
+        <Route path="/login" element={<CustomerLogin />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/customer/login" element={<CustomerLogin />} />
+        <Route path="/customer/register" element={<Register />} />
+        <Route path="/vendor/login" element={<VendorLogin />} />
+        <Route path="/vendor/register" element={<VendorOnboarding />} />
+        <Route path="/vendor/apply" element={<VendorOnboarding />} />
+        <Route path="/vendor/onboarding" element={<VendorOnboarding />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/super-admin/login" element={<SuperAdminLogin />} />
+        <Route path="/super-admin/login" element={<SuperAdminLogin />} />
+        <Route path="/portals" element={<PortalGateway />} />
+        <Route path="/unauthorized" element={<Unauthorized />} />
+      </Route>
 
       {/* ------------------------------------------------------------- */}
       {/* 2. CUSTOMER PORTAL (Strictly Customer Protected)             */}
@@ -277,16 +282,12 @@ export const AppRoutes = () => {
       {/* ------------------------------------------------------------- */}
       <Route path="/" element={<MainLayout />}>
         <Route index element={<Home />} />
-        <Route path="login" element={<CustomerLogin />} />
-        <Route path="register" element={<Register />} />
-        <Route path="portals" element={<PortalGateway />} />
         <Route path="products" element={<Products />} />
         <Route path="products/:slug" element={<ProductDetail />} />
         <Route path="cart" element={<Cart />} />
         <Route path="checkout" element={<Checkout />} />
         <Route path="join/shop/:publicToken" element={<ShopQRJoin />} />
         <Route path="v/:token" element={<ScanProcessor />} />
-        <Route path="vendor/onboarding" element={<VendorOnboarding />} />
 
         {/* Legacy / Shared Account Shortcuts for smooth user experience */}
         <Route path="account/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
@@ -314,8 +315,8 @@ export const AppRoutes = () => {
         <Route path="shopkeeper/qr" element={<ProtectedRoute allowedRoles={['SHOPKEEPER', 'ADMIN', 'SUPER_ADMIN']}><ShopQRCodeManager /></ProtectedRoute>} />
       </Route>
 
-      {/* Catch-all redirect */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      {/* 7. Catch-all 404 Route */}
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 };
