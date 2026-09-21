@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ChevronLeft,
@@ -9,10 +10,12 @@ import {
   Shield,
   Crown,
   Store,
+  ShoppingBag,
+  Settings,
 } from 'lucide-react';
 
 export const PortalSidebar = ({
-  portal = 'vendor', // 'vendor' | 'admin' | 'super-admin'
+  portal = 'vendor', // 'customer' | 'vendor' | 'admin' | 'super-admin'
   title = 'Vendor Portal',
   subtitle = 'Store Operations',
   navGroups = [],
@@ -24,6 +27,7 @@ export const PortalSidebar = ({
   user,
 }) => {
   const location = useLocation();
+  const cartItemCount = useSelector((state) => state.cart?.cart?.items?.length) || 0;
 
   // Escape key to close mobile drawer
   useEffect(() => {
@@ -43,29 +47,40 @@ export const PortalSidebar = ({
 
   // Determine portal branding colors & icon
   const brandConfig = {
+    customer: {
+      icon: ShoppingBag,
+      bgGradient: 'from-blue-600 via-blue-700 to-indigo-700',
+      badgeColor: 'bg-blue-100 text-blue-700',
+      activeItemClass: 'bg-blue-600 text-white font-bold shadow-md shadow-blue-500/20',
+      settingsPath: '/customer/settings',
+    },
     vendor: {
       icon: Store,
       bgGradient: 'from-blue-600 to-indigo-700',
       badgeColor: 'bg-blue-100 text-blue-700',
       activeItemClass: 'bg-blue-600 text-white font-bold shadow-md shadow-blue-500/20',
+      settingsPath: '/vendor/profile',
     },
     admin: {
       icon: Shield,
       bgGradient: 'from-blue-700 to-slate-900',
       badgeColor: 'bg-blue-100 text-blue-800',
       activeItemClass: 'bg-blue-700 text-white font-bold shadow-md shadow-blue-700/20',
+      settingsPath: '/admin/network-settings',
     },
     'super-admin': {
       icon: Crown,
       bgGradient: 'from-slate-900 via-indigo-950 to-blue-900',
       badgeColor: 'bg-amber-100 text-amber-900 border border-amber-300',
       activeItemClass: 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/20',
+      settingsPath: '/super-admin/settings',
     },
   }[portal] || {
-    icon: Store,
+    icon: ShoppingBag,
     bgGradient: 'from-blue-600 to-indigo-700',
     badgeColor: 'bg-blue-100 text-blue-700',
     activeItemClass: 'bg-blue-600 text-white font-bold shadow-sm',
+    settingsPath: '/customer/settings',
   };
 
   const BrandIcon = brandConfig.icon;
@@ -77,7 +92,6 @@ export const PortalSidebar = ({
     if (Array.isArray(user?.permissions)) {
       return user.permissions.includes(item.permission);
     }
-    // Default allow if no strict permission restriction or not loaded
     return true;
   };
 
@@ -148,9 +162,12 @@ export const PortalSidebar = ({
                     const Icon = item.icon;
                     const isActive =
                       location.pathname === item.path ||
-                      (item.path !== `/${portal}` &&
+                      (item.path !== '/' &&
+                        item.path !== `/${portal}` &&
                         item.path !== `/${portal}/dashboard` &&
                         location.pathname.startsWith(item.path));
+
+                    const badgeCount = item.isCart ? cartItemCount : item.badge;
 
                     return (
                       <div key={item.name} className="relative group">
@@ -162,14 +179,30 @@ export const PortalSidebar = ({
                               : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                           } ${collapsed ? 'justify-center px-2' : ''}`}
                         >
-                          <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-500 group-hover:text-slate-900'}`} />
-                          {!collapsed && <span className="truncate">{item.name}</span>}
+                          <div className="relative shrink-0">
+                            <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-500 group-hover:text-slate-900'}`} />
+                            {collapsed && badgeCount > 0 && (
+                              <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-blue-600 text-white text-[9px] font-black rounded-full flex items-center justify-center">
+                                {badgeCount > 9 ? '9+' : badgeCount}
+                              </span>
+                            )}
+                          </div>
+                          {!collapsed && (
+                            <>
+                              <span className="truncate flex-1">{item.name}</span>
+                              {badgeCount > 0 && (
+                                <span className="ml-auto px-2 py-0.5 text-[10px] font-black rounded-full bg-blue-100 text-blue-800">
+                                  {badgeCount}
+                                </span>
+                              )}
+                            </>
+                          )}
                         </Link>
 
                         {/* Floating Tooltip when Collapsed on Desktop */}
                         {collapsed && (
                           <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2.5 py-1 bg-slate-900 text-white text-[11px] font-semibold rounded-lg shadow-xl opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap">
-                            {item.name}
+                            {item.name} {badgeCount > 0 ? `(${badgeCount})` : ''}
                           </div>
                         )}
                       </div>
@@ -181,8 +214,34 @@ export const PortalSidebar = ({
           })}
         </nav>
 
-        {/* Footer with Logout */}
-        <div className={`p-3 border-t border-slate-200/80 bg-slate-50/50 ${collapsed ? 'flex justify-center' : ''}`}>
+        {/* User Card & Footer */}
+        <div className={`p-3 border-t border-slate-200/80 bg-slate-50/50 ${collapsed ? 'flex flex-col items-center gap-2' : 'space-y-2'}`}>
+          {!collapsed ? (
+            <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-xl bg-white border border-slate-200/60 shadow-xs">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+                {user?.name ? user.name[0].toUpperCase() : 'U'}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-xs font-bold text-slate-800 truncate">{user?.name || 'User'}</div>
+                <div className="text-[10px] font-semibold text-slate-400 capitalize">{portal.replace('-', ' ')}</div>
+              </div>
+              <Link
+                to={brandConfig.settingsPath}
+                className="p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition"
+                title="Account Settings"
+              >
+                <Settings className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          ) : (
+            <div
+              className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-xs cursor-pointer"
+              title={`${user?.name || 'User'} (${user?.role || portal})`}
+            >
+              {user?.name ? user.name[0].toUpperCase() : 'U'}
+            </div>
+          )}
+
           <button
             onClick={onLogout}
             className={`flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition w-full ${
@@ -238,3 +297,5 @@ export const PortalSidebar = ({
     </>
   );
 };
+
+export default PortalSidebar;

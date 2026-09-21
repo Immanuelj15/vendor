@@ -36,19 +36,67 @@ import {
   ShieldAlert,
   Activity,
   Percent,
+  ShoppingCart,
+  Headphones,
 } from 'lucide-react';
 
 /* ==========================================================================
-   1. CUSTOMER NAVIGATION
-   Pure e-commerce marketplace navigation.
+   1. CUSTOMER NAVIGATION (Sidebar Groups)
+   Pure e-commerce marketplace & rewards sidebar navigation.
    ========================================================================== */
+
+export const customerNavGroups = [
+  {
+    group: 'SHOP',
+    items: [
+      { name: 'Home', path: '/', icon: Home },
+      { name: 'Dashboard', path: '/customer/dashboard', icon: LayoutDashboard },
+      { name: 'Catalog', path: '/products', icon: ShoppingBag },
+      { name: 'Wishlist', path: '/customer/wishlist', icon: Heart },
+      { name: 'Cart', path: '/cart', icon: ShoppingCart, isCart: true },
+    ],
+  },
+  {
+    group: 'REWARDS',
+    items: [
+      { name: 'Fair Coins', path: '/customer/wallet', icon: Coins },
+      { name: 'VIP Pass', path: '/customer/subscription', icon: Crown, highlight: true },
+      { name: 'Spin & Win', path: '/customer/rewards', icon: Dices },
+      { name: 'Referral Network', path: '/customer/referrals', icon: Share2 },
+    ],
+  },
+  {
+    group: 'ORDERS',
+    items: [
+      { name: 'My Orders', path: '/customer/orders', icon: Package },
+      { name: 'Track Orders', path: '/customer/orders', icon: Tag },
+      { name: 'Returns', path: '/customer/orders', icon: RotateCcw },
+    ],
+  },
+  {
+    group: 'ACCOUNT',
+    items: [
+      { name: 'My Profile', path: '/customer/profile', icon: User },
+      { name: 'Addresses', path: '/customer/addresses', icon: MapPin },
+      { name: 'Notifications', path: '/customer/notifications', icon: Bell },
+      { name: 'Settings', path: '/customer/settings', icon: Settings },
+    ],
+  },
+  {
+    group: 'SUPPORT',
+    items: [
+      { name: 'Help Center', path: '/customer/dashboard', icon: HelpCircle },
+      { name: 'Contact Support', path: '/customer/dashboard', icon: Headphones },
+    ],
+  },
+];
 
 export const customerNavItems = [
   { name: 'Home', path: '/', icon: Home },
   { name: 'Catalog', path: '/products', icon: ShoppingBag },
-  { name: 'VIP Pass', path: '/account/subscription', icon: Crown, highlight: true },
-  { name: 'Spin & Win', path: '/account/spin', icon: Dices },
-  { name: 'Referral Network', path: '/account/referrals', icon: Share2 },
+  { name: 'VIP Pass', path: '/customer/subscription', icon: Crown, highlight: true },
+  { name: 'Spin & Win', path: '/customer/rewards', icon: Dices },
+  { name: 'Referral Network', path: '/customer/referrals', icon: Share2 },
 ];
 
 export const customerMobileBottomNav = [

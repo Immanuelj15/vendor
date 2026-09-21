@@ -292,22 +292,22 @@ export const AppRoutes = () => {
         {/* Legacy / Shared Account Shortcuts for smooth user experience */}
         <Route path="dashboard" element={<Navigate to="/customer/dashboard" replace />} />
         <Route path="account/dashboard" element={<Navigate to="/customer/dashboard" replace />} />
-        <Route path="account/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
-        <Route path="account/orders/:id" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
-        <Route path="account/shop" element={<ProtectedRoute><CustomerShop /></ProtectedRoute>} />
-        <Route path="account/attribution" element={<ProtectedRoute><CustomerAttributionView /></ProtectedRoute>} />
-        <Route path="account/referrals" element={<ProtectedRoute><Referrals /></ProtectedRoute>} />
-        <Route path="account/wallet" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
-        <Route path="account/fair-coins" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
-        <Route path="account/spin" element={<ProtectedRoute><SpinWheel /></ProtectedRoute>} />
-        <Route path="account/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-        <Route path="account/addresses" element={<ProtectedRoute><Addresses /></ProtectedRoute>} />
-        <Route path="account/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
-        <Route path="account/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-        <Route path="account/subscription" element={<ProtectedRoute><CustomerSubscription /></ProtectedRoute>} />
-        <Route path="account/offline-bills" element={<ProtectedRoute><OfflineBills /></ProtectedRoute>} />
-        <Route path="account/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
-        <Route path="account/commissions" element={<ProtectedRoute><Commissions /></ProtectedRoute>} />
+        <Route path="account/orders" element={<Navigate to="/customer/orders" replace />} />
+        <Route path="account/orders/:id" element={<Navigate to="/customer/orders" replace />} />
+        <Route path="account/shop" element={<Navigate to="/customer/dashboard" replace />} />
+        <Route path="account/attribution" element={<Navigate to="/customer/dashboard" replace />} />
+        <Route path="account/referrals" element={<Navigate to="/customer/referrals" replace />} />
+        <Route path="account/wallet" element={<Navigate to="/customer/wallet" replace />} />
+        <Route path="account/fair-coins" element={<Navigate to="/customer/wallet" replace />} />
+        <Route path="account/spin" element={<Navigate to="/customer/rewards" replace />} />
+        <Route path="account/profile" element={<Navigate to="/customer/profile" replace />} />
+        <Route path="account/addresses" element={<Navigate to="/customer/addresses" replace />} />
+        <Route path="account/notifications" element={<Navigate to="/customer/notifications" replace />} />
+        <Route path="account/settings" element={<Navigate to="/customer/settings" replace />} />
+        <Route path="account/subscription" element={<Navigate to="/customer/subscription" replace />} />
+        <Route path="account/offline-bills" element={<Navigate to="/customer/bills" replace />} />
+        <Route path="account/wishlist" element={<Navigate to="/customer/wishlist" replace />} />
+        <Route path="account/commissions" element={<Navigate to="/customer/wallet" replace />} />
 
         {/* Support Portals */}
         <Route path="delivery/dashboard" element={<ProtectedRoute allowedRoles={['DELIVERY_PARTNER', 'ADMIN', 'SUPER_ADMIN']}><DeliveryDashboard /></ProtectedRoute>} />
