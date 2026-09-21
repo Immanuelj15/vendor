@@ -164,6 +164,7 @@ export const AppRoutes = () => {
         <Route path="notifications" element={<Notifications />} />
         <Route path="profile" element={<Profile />} />
         <Route path="addresses" element={<Addresses />} />
+        <Route path="settings" element={<Settings />} />
       </Route>
 
       {/* ------------------------------------------------------------- */}

@@ -40,10 +40,53 @@ export const PortalSidebar = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [mobileOpen, onCloseMobile]);
 
-  // Close mobile drawer on route change
+  // Close mobile drawer on route or tab change
   useEffect(() => {
     onCloseMobile();
-  }, [location.pathname]);
+  }, [location.pathname, location.search]);
+
+  // Robust active link resolution that distinguishes query parameters and tabs
+  const isItemActive = (itemPath) => {
+    if (!itemPath) return false;
+
+    const [itemBase, itemQuery] = itemPath.split('?');
+    const currentPath = location.pathname;
+    const currentSearch = location.search ? location.search.replace(/^\?/, '') : '';
+    const currentParams = new URLSearchParams(currentSearch);
+
+    // 1. If this nav item requires a query parameter (e.g. ?tab=tracking, ?tab=returns)
+    if (itemQuery) {
+      if (currentPath !== itemBase) return false;
+      const itemParams = new URLSearchParams(itemQuery);
+      for (const [key, val] of itemParams.entries()) {
+        if (currentParams.get(key) !== val) return false;
+      }
+      return true;
+    }
+
+    // 2. If the current URL has a tab or view query parameter, an item without query param should not match
+    if (currentParams.has('tab') || currentParams.has('view')) {
+      return false;
+    }
+
+    // 3. Exact path match
+    if (currentPath === itemBase) {
+      return true;
+    }
+
+    // 4. Sub-route match (e.g., /customer/orders/:id matches /customer/orders)
+    // Exclude root and main dashboards from matching everything
+    if (
+      itemBase !== '/' &&
+      itemBase !== `/${portal}` &&
+      itemBase !== `/${portal}/dashboard` &&
+      currentPath.startsWith(`${itemBase}/`)
+    ) {
+      return true;
+    }
+
+    return false;
+  };
 
   // Determine portal branding colors & icon
   const brandConfig = {
@@ -160,12 +203,7 @@ export const PortalSidebar = ({
                 <div className="space-y-1">
                   {authorizedItems.map((item) => {
                     const Icon = item.icon;
-                    const isActive =
-                      location.pathname === item.path ||
-                      (item.path !== '/' &&
-                        item.path !== `/${portal}` &&
-                        item.path !== `/${portal}/dashboard` &&
-                        location.pathname.startsWith(item.path));
+                    const isActive = isItemActive(item.path);
 
                     const badgeCount = item.isCart ? cartItemCount : item.badge;
 

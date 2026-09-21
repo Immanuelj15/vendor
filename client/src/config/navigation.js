@@ -69,8 +69,8 @@ export const customerNavGroups = [
     group: 'ORDERS',
     items: [
       { name: 'My Orders', path: '/customer/orders', icon: Package },
-      { name: 'Track Orders', path: '/customer/orders', icon: Tag },
-      { name: 'Returns', path: '/customer/orders', icon: RotateCcw },
+      { name: 'Track Orders', path: '/customer/orders?tab=tracking', icon: Tag },
+      { name: 'Returns', path: '/customer/orders?tab=returns', icon: RotateCcw },
     ],
   },
   {
@@ -85,8 +85,8 @@ export const customerNavGroups = [
   {
     group: 'SUPPORT',
     items: [
-      { name: 'Help Center', path: '/customer/dashboard', icon: HelpCircle },
-      { name: 'Contact Support', path: '/customer/dashboard', icon: Headphones },
+      { name: 'Help Center', path: '/customer/notifications', icon: HelpCircle },
+      { name: 'Contact Support', path: '/customer/profile?tab=support', icon: Headphones },
     ],
   },
 ];
@@ -146,14 +146,14 @@ export const vendorNavGroups = [
     items: [
       { name: 'Products', path: '/vendor/products', icon: Package },
       { name: 'Add Product', path: '/vendor/products/new', icon: PlusCircle },
-      { name: 'Inventory', path: '/vendor/products', icon: Boxes },
+      { name: 'Inventory', path: '/vendor/products?tab=inventory', icon: Boxes },
     ],
   },
   {
     group: 'ORDER MANAGEMENT',
     items: [
       { name: 'Orders', path: '/vendor/orders', icon: ShoppingBag },
-      { name: 'Returns & Cancellations', path: '/vendor/orders', icon: RotateCcw },
+      { name: 'Returns & Cancellations', path: '/vendor/orders?tab=returns', icon: RotateCcw },
     ],
   },
   {
@@ -173,7 +173,7 @@ export const vendorNavGroups = [
     group: 'VERIFICATION',
     items: [
       { name: 'Business Profile', path: '/vendor/profile', icon: Building2 },
-      { name: 'Bank Details', path: '/vendor/profile', icon: Landmark },
+      { name: 'Bank Details', path: '/vendor/profile?tab=bank', icon: Landmark },
     ],
   },
   {
@@ -187,8 +187,8 @@ export const vendorNavGroups = [
   {
     group: 'SYSTEM',
     items: [
-      { name: 'Settings', path: '/vendor/profile', icon: Settings },
-      { name: 'Help', path: '/vendor/dashboard', icon: HelpCircle },
+      { name: 'Settings', path: '/vendor/profile?tab=settings', icon: Settings },
+      { name: 'Help', path: '/vendor/dashboard?tab=help', icon: HelpCircle },
     ],
   },
 ];

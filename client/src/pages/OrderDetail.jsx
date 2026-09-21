@@ -110,7 +110,7 @@ export const OrderDetail = () => {
         <AlertCircle className="w-12 h-12 text-rose-500 mx-auto" />
         <h2 className="text-xl font-bold text-slate-900">Error Loading Order</h2>
         <p className="text-xs text-slate-500">{error || 'Order record not found or inaccessible.'}</p>
-        <Link to="/account/orders" className="inline-flex items-center gap-1.5 text-xs text-blue-600 font-bold hover:underline">
+        <Link to="/customer/orders" className="inline-flex items-center gap-1.5 text-xs text-blue-600 font-bold hover:underline">
           <ArrowLeft className="w-4 h-4" /> Back to My Orders
         </Link>
       </div>
@@ -141,7 +141,7 @@ export const OrderDetail = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-5 gap-4">
         <div className="flex items-center gap-3">
           <Link
-            to="/account/orders"
+            to="/customer/orders"
             className="p-2.5 rounded-2xl bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 shadow-xs transition"
           >
             <ArrowLeft className="w-4 h-4" />
