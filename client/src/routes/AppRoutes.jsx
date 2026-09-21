@@ -55,6 +55,7 @@ import { CustomerSubscription } from '../pages/CustomerSubscription';
 import { OfflineBills } from '../pages/OfflineBills';
 import { Wishlist } from '../pages/Wishlist';
 import { Commissions } from '../pages/Commissions';
+import CustomerHelp from '../pages/customer/CustomerHelp';
 
 // Vendor Pages
 import { VendorDashboard } from '../pages/VendorDashboard';
@@ -165,6 +166,8 @@ export const AppRoutes = () => {
         <Route path="profile" element={<Profile />} />
         <Route path="addresses" element={<Addresses />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="help" element={<CustomerHelp />} />
+        <Route path="support" element={<CustomerHelp />} />
       </Route>
 
       {/* ------------------------------------------------------------- */}

@@ -85,8 +85,8 @@ export const customerNavGroups = [
   {
     group: 'SUPPORT',
     items: [
-      { name: 'Help Center', path: '/customer/notifications', icon: HelpCircle },
-      { name: 'Contact Support', path: '/customer/profile?tab=support', icon: Headphones },
+      { name: 'Help Center', path: '/customer/help', icon: HelpCircle },
+      { name: 'Contact Support', path: '/customer/help?tab=contact', icon: Headphones },
     ],
   },
 ];
