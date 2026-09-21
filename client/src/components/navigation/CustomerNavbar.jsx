@@ -96,20 +96,7 @@ export const CustomerNavbar = ({ onOpenMobileMenu }) => {
             </Link>
 
             {/* Desktop Navbar Links */}
-            <nav className="hidden lg:flex items-center gap-1 xl:gap-2 text-xs font-semibold text-slate-600 border-l border-slate-200 pl-6">
-              {isAuthenticated && (user?.role === 'CUSTOMER' || user?.role === 'USER') && (
-                <Link
-                  to="/customer/dashboard"
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
-                    location.pathname === '/customer/dashboard'
-                      ? 'text-blue-600 bg-blue-50 font-bold'
-                      : 'text-blue-600 bg-blue-50/70 hover:bg-blue-100/80 font-bold border border-blue-200/60'
-                  }`}
-                >
-                  <LayoutDashboard className="w-3.5 h-3.5 text-blue-600" />
-                  <span>Dashboard</span>
-                </Link>
-              )}
+            <nav className="hidden lg:flex items-center gap-1 xl:gap-2 text-xs font-semibold text-slate-600 border-l border-slate-200 pl-4 xl:pl-6 shrink-0">
               {customerNavItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = location.pathname === item.path;
@@ -117,15 +104,15 @@ export const CustomerNavbar = ({ onOpenMobileMenu }) => {
                   <Link
                     key={item.name}
                     to={item.path}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all shrink-0 ${
                       isActive
                         ? 'text-blue-600 bg-blue-50 font-bold'
                         : item.highlight
-                        ? 'text-blue-600 hover:bg-blue-50 hover:text-blue-700'
+                        ? 'text-blue-600 hover:bg-blue-50 hover:text-blue-700 font-semibold'
                         : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
                     }`}
                   >
-                    <Icon className={`w-3.5 h-3.5 ${item.highlight ? 'text-blue-600' : ''}`} />
+                    <Icon className={`w-3.5 h-3.5 shrink-0 ${item.highlight ? 'text-blue-600' : ''}`} />
                     <span>{item.name}</span>
                   </Link>
                 );
@@ -136,7 +123,7 @@ export const CustomerNavbar = ({ onOpenMobileMenu }) => {
           {/* Center: Search Bar */}
           <form
             onSubmit={handleSearchSubmit}
-            className="hidden md:flex flex-1 max-w-xs lg:max-w-md items-center relative"
+            className="hidden md:flex flex-1 max-w-sm xl:max-w-md min-w-[180px] items-center relative mx-2 xl:mx-4"
           >
             <Search className="w-4 h-4 text-slate-400 absolute left-3 pointer-events-none" />
             <input
@@ -158,20 +145,7 @@ export const CustomerNavbar = ({ onOpenMobileMenu }) => {
           </form>
 
           {/* Right: Actions (Cart, Notifications, Coins, Profile / Login) */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            
-            {/* Direct Dashboard Button for Customer */}
-            {isAuthenticated && (user?.role === 'CUSTOMER' || user?.role === 'USER') && (
-              <Link
-                to="/customer/dashboard"
-                title="Customer Dashboard"
-                className="hidden sm:flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-full transition-all text-xs font-bold shadow-xs shrink-0 shadow-blue-500/20"
-              >
-                <LayoutDashboard className="w-3.5 h-3.5 text-white" />
-                <span>Dashboard</span>
-              </Link>
-            )}
-
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             {/* Coins Balance Pill (Authenticated Customer) */}
             {isAuthenticated && (
               <Link
