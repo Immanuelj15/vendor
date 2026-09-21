@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { AccountSidebar } from '../components/AccountSidebar';
 import api from '../services/api';
 import { fetchCurrentUser, updateCoinBalance } from '../store/authSlice';
 import {
@@ -173,11 +172,8 @@ export const CustomerSubscription = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex flex-col md:flex-row gap-8">
-        <AccountSidebar />
-
-        <div className="flex-1 bg-white border border-slate-200/80 rounded-3xl p-6 md:p-8 shadow-xs space-y-8">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="bg-white border border-slate-200/80 rounded-3xl p-6 md:p-8 shadow-xs space-y-8">
           
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-5 gap-3">
@@ -374,7 +370,6 @@ export const CustomerSubscription = () => {
             )}
           </div>
         </div>
-      </div>
 
       {/* Mock Dev Test Payment Modal */}
       {showMockModal && mockPaymentData && (

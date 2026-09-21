@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { AccountSidebar } from '../components/AccountSidebar';
 import api from '../services/api';
 import { Percent, TrendingUp, DollarSign, Calendar, RefreshCw, ArrowLeft, ArrowRight, ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -45,15 +44,12 @@ export const Commissions = () => {
   }, 0);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex flex-col md:flex-row gap-8">
-        <AccountSidebar />
-
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex-1 bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-7 shadow-xs flex flex-col justify-between min-h-[500px]"
-        >
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-7 shadow-xs flex flex-col justify-between min-h-[500px]"
+      >
           <div>
             <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
               <div>
@@ -222,7 +218,6 @@ export const Commissions = () => {
             </div>
           )}
         </motion.div>
-      </div>
     </div>
   );
 };

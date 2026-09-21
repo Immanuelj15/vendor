@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { AccountSidebar } from '../components/AccountSidebar';
 import api from '../services/api';
 import { Heart, ShoppingCart, Trash2, ArrowRight, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -54,11 +53,8 @@ export const Wishlist = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex flex-col md:flex-row gap-8">
-        <AccountSidebar />
-
-        <div className="flex-1 bg-white border border-slate-200/80 rounded-3xl p-6 md:p-8 shadow-xs">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="bg-white border border-slate-200/80 rounded-3xl p-6 md:p-8 shadow-xs">
           <div className="border-b border-slate-100 pb-5 mb-6 flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
@@ -173,7 +169,6 @@ export const Wishlist = () => {
           )}
         </div>
       </div>
-    </div>
   );
 };
 

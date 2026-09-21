@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { AccountSidebar } from '../components/AccountSidebar';
 import api from '../services/api';
 import {
   FileText,
@@ -182,11 +181,7 @@ export const OfflineBills = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex flex-col md:flex-row gap-8">
-        <AccountSidebar />
-
-        <main className="flex-1 space-y-6">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
           {/* Top Banner */}
           <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 text-white p-6 sm:p-8 shadow-xl shadow-blue-600/10">
             <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none" />
@@ -610,8 +605,6 @@ export const OfflineBills = () => {
               </div>
             )}
           </AnimatePresence>
-        </main>
-      </div>
     </div>
   );
 };
