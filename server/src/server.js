@@ -10,6 +10,19 @@ const startServer = async () => {
 
     console.log('[Database] Connection established successfully.');
 
+    // Auto-seed territories if empty
+    try {
+      const { Territory } = await import('./models/Territory.js');
+      const count = await Territory.countDocuments();
+      if (count === 0) {
+        console.log('[Territories] Empty territory database detected. Seeding Indian states & dispatch hubs...');
+        const { seedTerritories } = await import('../scripts/seedTerritories.js');
+        await seedTerritories();
+      }
+    } catch (terrErr) {
+      console.warn('[Territories] Auto-seed check notice:', terrErr.message);
+    }
+
     const PORT = env.PORT || 5000;
 
     // Start API only after MongoDB is connected

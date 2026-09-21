@@ -18,8 +18,9 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import api from '../services/api';
 
-const InputField = ({ label, name, type = 'text', required = false, formData, onChange, children, ...props }) => (
+const InputField = ({ label, name, type = 'text', required = false, formData, onChange, children, disabled, ...props }) => (
   <div className="space-y-1.5">
     <label className="block text-xs font-bold text-slate-700">
       {label} {required && <span className="text-rose-500">*</span>}
@@ -30,7 +31,8 @@ const InputField = ({ label, name, type = 'text', required = false, formData, on
         value={formData[name]}
         onChange={onChange}
         required={required}
-        className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all h-24 resize-none font-medium"
+        disabled={disabled}
+        className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all h-24 resize-none font-medium disabled:opacity-60 disabled:bg-slate-100 disabled:cursor-not-allowed"
         {...props}
       />
     ) : type === 'select' ? (
@@ -39,7 +41,8 @@ const InputField = ({ label, name, type = 'text', required = false, formData, on
         value={formData[name]}
         onChange={onChange}
         required={required}
-        className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all font-medium"
+        disabled={disabled}
+        className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all font-medium disabled:opacity-60 disabled:bg-slate-100 disabled:cursor-not-allowed"
         {...props}
       >
         {children}
@@ -51,7 +54,8 @@ const InputField = ({ label, name, type = 'text', required = false, formData, on
         value={formData[name]}
         onChange={onChange}
         required={required}
-        className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all font-medium"
+        disabled={disabled}
+        className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all font-medium disabled:opacity-60 disabled:bg-slate-100 disabled:cursor-not-allowed"
         {...props}
       />
     )}
@@ -91,49 +95,110 @@ export const VendorOnboarding = () => {
   const [statesList, setStatesList] = useState([]);
   const [districtsList, setDistrictsList] = useState([]);
   const [taluksList, setTaluksList] = useState([]);
+  const [loadingStates, setLoadingStates] = useState(false);
+  const [loadingDistricts, setLoadingDistricts] = useState(false);
+  const [loadingTaluks, setLoadingTaluks] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token') || localStorage.getItem('fk_access_token');
     if (token) {
-      fetch('/api/auth/vendor-onboarding/status', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.data && data.data.vendor) {
-            setStatus(data.data.vendor.status);
-            if (data.data.vendor.status === 'UNDER_REVIEW') setCurrentStep(7);
+      api.get('/auth/vendor-onboarding/status')
+        .then((res) => {
+          if (res.data?.data?.vendor) {
+            setStatus(res.data.data.vendor.status);
+            if (res.data.data.vendor.status === 'UNDER_REVIEW') setCurrentStep(7);
           }
         })
         .catch(() => {});
     }
 
-    fetch('/api/territories/states')
-      .then((res) => res.json())
-      .then((data) => setStatesList(data.data?.states || []))
-      .catch(() => {});
+    setLoadingStates(true);
+    api.get('/territories/states')
+      .then((res) => {
+        setStatesList(res.data?.data?.states || []);
+      })
+      .catch((err) => {
+        console.error('Failed to load states:', err);
+      })
+      .finally(() => {
+        setLoadingStates(false);
+      });
   }, []);
 
   useEffect(() => {
-    if (formData.state) {
-      fetch(`/api/territories/states/${formData.state}/districts`)
-        .then((res) => res.json())
-        .then((data) => setDistrictsList(data.data?.districts || []))
-        .catch(() => {});
+    if (!formData.state) {
+      setDistrictsList([]);
+      return;
     }
+    setLoadingDistricts(true);
+    api.get(`/territories/states/${formData.state}/districts`)
+      .then((res) => {
+        setDistrictsList(res.data?.data?.districts || []);
+      })
+      .catch((err) => {
+        console.error('Failed to load districts:', err);
+      })
+      .finally(() => {
+        setLoadingDistricts(false);
+      });
   }, [formData.state]);
 
   useEffect(() => {
-    if (formData.district) {
-      fetch(`/api/territories/districts/${formData.district}/taluks`)
-        .then((res) => res.json())
-        .then((data) => setTaluksList(data.data?.taluks || []))
-        .catch(() => {});
+    if (!formData.district) {
+      setTaluksList([]);
+      return;
     }
+    setLoadingTaluks(true);
+    api.get(`/territories/districts/${formData.district}/taluks`)
+      .then((res) => {
+        setTaluksList(res.data?.data?.taluks || []);
+      })
+      .catch((err) => {
+        console.error('Failed to load taluks:', err);
+      })
+      .finally(() => {
+        setLoadingTaluks(false);
+      });
   }, [formData.district]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+
+    if (name === 'state') {
+      setFormData((prev) => ({
+        ...prev,
+        state: value,
+        district: '',
+        talukArea: '',
+        pincode: '',
+      }));
+      setDistrictsList([]);
+      setTaluksList([]);
+      return;
+    }
+
+    if (name === 'district') {
+      setFormData((prev) => ({
+        ...prev,
+        district: value,
+        talukArea: '',
+        pincode: '',
+      }));
+      setTaluksList([]);
+      return;
+    }
+
+    if (name === 'talukArea') {
+      const selectedTaluk = taluksList.find((t) => t._id === value);
+      const autoPincode = selectedTaluk?.pincodes?.[0] || '';
+      setFormData((prev) => ({
+        ...prev,
+        talukArea: value,
+        pincode: autoPincode ? autoPincode : prev.pincode,
+      }));
+      return;
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
@@ -160,20 +225,16 @@ export const VendorOnboarding = () => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const response = await fetch('/api/auth/vendor-onboarding/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-      const data = await response.json();
-      if (response.ok) {
+      const response = await api.post('/auth/vendor-onboarding/register', formData);
+      if (response.status === 200 || response.status === 201) {
         setStatus('UNDER_REVIEW');
         setCurrentStep(7);
       } else {
-        alert('Error: ' + data.message);
+        alert('Error: ' + (response.data?.message || 'Registration failed'));
       }
     } catch (err) {
-      alert('Network error. Please try again later.');
+      const msg = err.response?.data?.message || err.message || 'Registration failed. Please check your inputs and try again.';
+      alert('Error: ' + msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -389,8 +450,16 @@ export const VendorOnboarding = () => {
                       <p className="text-sm text-slate-600 mt-0.5">Where is your inventory stored and dispatched from?</p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      <InputField formData={formData} onChange={handleChange} label="State" name="state" type="select" required>
-                        <option value="">Select State</option>
+                      <InputField
+                        formData={formData}
+                        onChange={handleChange}
+                        label="State"
+                        name="state"
+                        type="select"
+                        required
+                        disabled={loadingStates}
+                      >
+                        <option value="">{loadingStates ? 'Loading States...' : 'Select State'}</option>
                         {statesList.map((s) => (
                           <option key={s._id} value={s._id}>
                             {s.name}
@@ -404,8 +473,15 @@ export const VendorOnboarding = () => {
                         name="district"
                         type="select"
                         required
+                        disabled={!formData.state || loadingDistricts}
                       >
-                        <option value="">Select District</option>
+                        <option value="">
+                          {!formData.state
+                            ? 'Select State First'
+                            : loadingDistricts
+                            ? 'Loading Districts...'
+                            : 'Select District'}
+                        </option>
                         {districtsList.map((d) => (
                           <option key={d._id} value={d._id}>
                             {d.name}
@@ -419,8 +495,15 @@ export const VendorOnboarding = () => {
                         name="talukArea"
                         type="select"
                         required
+                        disabled={!formData.district || loadingTaluks}
                       >
-                        <option value="">Select Taluk / Area</option>
+                        <option value="">
+                          {!formData.district
+                            ? 'Select District First'
+                            : loadingTaluks
+                            ? 'Loading Taluks / Areas...'
+                            : 'Select Taluk / Area'}
+                        </option>
                         {taluksList.map((t) => (
                           <option key={t._id} value={t._id}>
                             {t.name}
