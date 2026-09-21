@@ -20,47 +20,64 @@ import {
 import { motion } from 'framer-motion';
 import api from '../services/api';
 
-const InputField = ({ label, name, type = 'text', required = false, formData, onChange, children, disabled, ...props }) => (
-  <div className="space-y-1.5">
-    <label className="block text-xs font-bold text-slate-700">
-      {label} {required && <span className="text-rose-500">*</span>}
-    </label>
-    {type === 'textarea' ? (
-      <textarea
-        name={name}
-        value={formData[name]}
-        onChange={onChange}
-        required={required}
-        disabled={disabled}
-        className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all h-24 resize-none font-medium disabled:opacity-60 disabled:bg-slate-100 disabled:cursor-not-allowed"
-        {...props}
-      />
-    ) : type === 'select' ? (
-      <select
-        name={name}
-        value={formData[name]}
-        onChange={onChange}
-        required={required}
-        disabled={disabled}
-        className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all font-medium disabled:opacity-60 disabled:bg-slate-100 disabled:cursor-not-allowed"
-        {...props}
-      >
-        {children}
-      </select>
-    ) : (
-      <input
-        type={type}
-        name={name}
-        value={formData[name]}
-        onChange={onChange}
-        required={required}
-        disabled={disabled}
-        className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all font-medium disabled:opacity-60 disabled:bg-slate-100 disabled:cursor-not-allowed"
-        {...props}
-      />
-    )}
-  </div>
-);
+const InputField = ({ label, name, type = 'text', required = false, formData, onChange, children, disabled, errors, error, ...props }) => {
+  const fieldError = error || errors?.[name];
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between gap-2">
+        <label className="block text-xs font-bold text-slate-700">
+          {label} {required && <span className="text-rose-500">*</span>}
+        </label>
+        {fieldError && (
+          <span className="text-[11px] font-semibold text-rose-600 flex items-center gap-1 animate-fadeIn">
+            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+            {fieldError}
+          </span>
+        )}
+      </div>
+      {type === 'textarea' ? (
+        <textarea
+          name={name}
+          value={formData[name]}
+          onChange={onChange}
+          required={required}
+          disabled={disabled}
+          className={`w-full bg-slate-50 border ${
+            fieldError ? 'border-rose-400 bg-rose-50/20 ring-2 ring-rose-100' : 'border-slate-200 focus:border-blue-600 focus:ring-blue-100'
+          } text-slate-900 rounded-xl px-4 py-3 text-sm focus:outline-none focus:bg-white focus:ring-2 transition-all h-24 resize-none font-medium disabled:opacity-60 disabled:bg-slate-100 disabled:cursor-not-allowed`}
+          {...props}
+        />
+      ) : type === 'select' ? (
+        <select
+          name={name}
+          value={formData[name]}
+          onChange={onChange}
+          required={required}
+          disabled={disabled}
+          className={`w-full bg-slate-50 border ${
+            fieldError ? 'border-rose-400 bg-rose-50/20 ring-2 ring-rose-100' : 'border-slate-200 focus:border-blue-600 focus:ring-blue-100'
+          } text-slate-900 rounded-xl px-4 py-3 text-sm focus:outline-none focus:bg-white focus:ring-2 transition-all font-medium disabled:opacity-60 disabled:bg-slate-100 disabled:cursor-not-allowed`}
+          {...props}
+        >
+          {children}
+        </select>
+      ) : (
+        <input
+          type={type}
+          name={name}
+          value={formData[name]}
+          onChange={onChange}
+          required={required}
+          disabled={disabled}
+          className={`w-full bg-slate-50 border ${
+            fieldError ? 'border-rose-400 bg-rose-50/20 ring-2 ring-rose-100' : 'border-slate-200 focus:border-blue-600 focus:ring-blue-100'
+          } text-slate-900 rounded-xl px-4 py-3 text-sm focus:outline-none focus:bg-white focus:ring-2 transition-all font-medium disabled:opacity-60 disabled:bg-slate-100 disabled:cursor-not-allowed`}
+          {...props}
+        />
+      )}
+    </div>
+  );
+};
 
 export const VendorOnboarding = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -96,6 +113,19 @@ export const VendorOnboarding = () => {
   const [allDistricts, setAllDistricts] = useState([]);
   const [allTaluks, setAllTaluks] = useState([]);
   const [loadingTerritories, setLoadingTerritories] = useState(true);
+
+  const [errors, setErrors] = useState({});
+  const [stepWarning, setStepWarning] = useState('');
+
+  const clearFieldError = (fieldName) => {
+    setErrors((prev) => {
+      if (!prev[fieldName]) return prev;
+      const next = { ...prev };
+      delete next[fieldName];
+      return next;
+    });
+    setStepWarning('');
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('token') || localStorage.getItem('fk_access_token');
@@ -145,6 +175,7 @@ export const VendorOnboarding = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    clearFieldError(name);
 
     if (name === 'state') {
       const currentDistrict = allDistricts.find((d) => String(d._id) === String(formData.district));
@@ -162,8 +193,6 @@ export const VendorOnboarding = () => {
 
     if (name === 'district') {
       const selectedDistrict = allDistricts.find((d) => String(d._id) === String(value));
-      const newState = selectedDistrict ? (selectedDistrict.parentTerritory || prev.state) : formData.state;
-
       const currentTaluk = allTaluks.find((t) => String(t._id) === String(formData.talukArea));
       const talukBelongs = currentTaluk && String(currentTaluk.parentTerritory) === String(value);
 
@@ -215,15 +244,104 @@ export const VendorOnboarding = () => {
         ...prev,
         [field]: reader.result,
       }));
+      clearFieldError(field);
     };
     reader.readAsDataURL(file);
   };
 
-  const nextStep = () => setCurrentStep((prev) => prev + 1);
-  const prevStep = () => setCurrentStep((prev) => prev - 1);
+  const validateStep = (step) => {
+    const errs = {};
+
+    if (step === 1) {
+      if (!formData.name?.trim()) errs.name = 'Full legal name is required';
+      if (!formData.email?.trim()) {
+        errs.email = 'Email address is required';
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+        errs.email = 'Please enter a valid email address';
+      }
+      if (!formData.phone?.trim()) {
+        errs.phone = 'Mobile number is required';
+      } else if (!/^\d{10}$/.test(formData.phone.trim().replace(/\D/g, ''))) {
+        errs.phone = 'Valid 10-digit mobile number required';
+      }
+      if (!formData.password) {
+        errs.password = 'Account password is required';
+      } else if (formData.password.length < 6) {
+        errs.password = 'Password must be at least 6 characters';
+      }
+    }
+
+    if (step === 2) {
+      if (!formData.storeName?.trim()) errs.storeName = 'Store name is required';
+    }
+
+    if (step === 3) {
+      if (!formData.state) errs.state = 'Please select a State';
+      if (!formData.district) errs.district = 'Please select a District';
+      if (!formData.talukArea) errs.talukArea = 'Please select a Taluk / Area';
+      if (!formData.pincode?.trim()) {
+        errs.pincode = 'PIN code is required';
+      } else if (!/^\d{6}$/.test(formData.pincode.trim())) {
+        errs.pincode = 'Valid 6-digit PIN code required';
+      }
+      if (!formData.fullAddress?.trim()) errs.fullAddress = 'Full street address is required';
+    }
+
+    if (step === 4) {
+      if (!formData.identityDocumentType) errs.identityDocumentType = 'Select document type';
+      if (!formData.identityDocumentNumber?.trim()) errs.identityDocumentNumber = 'Document ID number is required';
+      if (!formData.identityDocumentUpload) errs.identityDocumentUpload = 'Identity document (PDF) upload is required';
+    }
+
+    if (step === 5) {
+      if (!formData.accountHolderName?.trim()) errs.accountHolderName = 'Account holder name is required';
+      if (!formData.bankName?.trim()) errs.bankName = 'Bank name is required';
+      if (!formData.accountNumber?.trim()) errs.accountNumber = 'Account number is required';
+      if (!formData.ifscCode?.trim()) {
+        errs.ifscCode = 'IFSC code is required';
+      } else if (!/^[A-Z]{4}0[A-Z0-9]{6}$/i.test(formData.ifscCode.trim())) {
+        errs.ifscCode = 'Valid IFSC code required (e.g. HDFC0001234)';
+      }
+    }
+
+    return errs;
+  };
+
+  const nextStep = () => {
+    const stepErrors = validateStep(currentStep);
+    if (Object.keys(stepErrors).length > 0) {
+      setErrors(stepErrors);
+      setStepWarning('Please fill all mandatory fields correctly before moving to the next step.');
+      return;
+    }
+    setErrors({});
+    setStepWarning('');
+    setCurrentStep((prev) => prev + 1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const prevStep = () => {
+    setErrors({});
+    setStepWarning('');
+    setCurrentStep((prev) => prev - 1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    for (let step = 1; step <= 5; step++) {
+      const stepErrors = validateStep(step);
+      if (Object.keys(stepErrors).length > 0) {
+        setCurrentStep(step);
+        setErrors(stepErrors);
+        setStepWarning(`Please complete all mandatory fields in Step ${step} before submitting.`);
+        return;
+      }
+    }
+    if (!formData.termsAccepted) {
+      setStepWarning('You must accept the terms and conditions to submit.');
+      return;
+    }
     setIsSubmitting(true);
     try {
       const response = await api.post('/auth/vendor-onboarding/register', formData);
@@ -357,6 +475,7 @@ export const VendorOnboarding = () => {
                       <InputField
                         formData={formData}
                         onChange={handleChange}
+                        errors={errors}
                         label="Full Legal Name"
                         name="name"
                         required
@@ -365,6 +484,7 @@ export const VendorOnboarding = () => {
                       <InputField
                         formData={formData}
                         onChange={handleChange}
+                        errors={errors}
                         label="Email Address"
                         name="email"
                         type="email"
@@ -374,6 +494,7 @@ export const VendorOnboarding = () => {
                       <InputField
                         formData={formData}
                         onChange={handleChange}
+                        errors={errors}
                         label="Mobile Number"
                         name="phone"
                         required
@@ -382,6 +503,7 @@ export const VendorOnboarding = () => {
                       <InputField
                         formData={formData}
                         onChange={handleChange}
+                        errors={errors}
                         label="Account Password"
                         name="password"
                         type="password"
@@ -403,6 +525,7 @@ export const VendorOnboarding = () => {
                       <InputField
                         formData={formData}
                         onChange={handleChange}
+                        errors={errors}
                         label="Store Name"
                         name="storeName"
                         required
@@ -412,6 +535,7 @@ export const VendorOnboarding = () => {
                         <InputField
                           formData={formData}
                           onChange={handleChange}
+                          errors={errors}
                           label="Business Type"
                           name="businessType"
                           placeholder="e.g. Retail, Wholesale, Manufacturing"
@@ -419,6 +543,7 @@ export const VendorOnboarding = () => {
                         <InputField
                           formData={formData}
                           onChange={handleChange}
+                          errors={errors}
                           label="GST Number"
                           name="gstNumber"
                           placeholder="Optional for unregistered vendors"
@@ -427,6 +552,7 @@ export const VendorOnboarding = () => {
                       <InputField
                         formData={formData}
                         onChange={handleChange}
+                        errors={errors}
                         label="PAN Number (Business / Personal)"
                         name="panNumber"
                         placeholder="ABCDE1234F"
@@ -434,6 +560,7 @@ export const VendorOnboarding = () => {
                       <InputField
                         formData={formData}
                         onChange={handleChange}
+                        errors={errors}
                         label="Store Description"
                         name="description"
                         type="textarea"
@@ -454,6 +581,7 @@ export const VendorOnboarding = () => {
                       <InputField
                         formData={formData}
                         onChange={handleChange}
+                        errors={errors}
                         label="State"
                         name="state"
                         type="select"
@@ -471,6 +599,7 @@ export const VendorOnboarding = () => {
                       <InputField
                         formData={formData}
                         onChange={handleChange}
+                        errors={errors}
                         label="District"
                         name="district"
                         type="select"
@@ -488,6 +617,7 @@ export const VendorOnboarding = () => {
                       <InputField
                         formData={formData}
                         onChange={handleChange}
+                        errors={errors}
                         label="Taluk / Area"
                         name="talukArea"
                         type="select"
@@ -505,6 +635,7 @@ export const VendorOnboarding = () => {
                       <InputField
                         formData={formData}
                         onChange={handleChange}
+                        errors={errors}
                         label="PIN Code"
                         name="pincode"
                         required
@@ -514,6 +645,7 @@ export const VendorOnboarding = () => {
                     <InputField
                       formData={formData}
                       onChange={handleChange}
+                      errors={errors}
                       label="Full Street Address"
                       name="fullAddress"
                       type="textarea"
@@ -534,6 +666,7 @@ export const VendorOnboarding = () => {
                       <InputField
                         formData={formData}
                         onChange={handleChange}
+                        errors={errors}
                         label="Document Type"
                         name="identityDocumentType"
                         type="select"
@@ -548,6 +681,7 @@ export const VendorOnboarding = () => {
                       <InputField
                         formData={formData}
                         onChange={handleChange}
+                        errors={errors}
                         label="Document Number"
                         name="identityDocumentNumber"
                         required
@@ -556,10 +690,24 @@ export const VendorOnboarding = () => {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div className="space-y-1.5">
-                        <label className="block text-xs font-bold text-slate-700">
-                          Identity Document Upload (PDF) <span className="text-rose-500">*</span>
-                        </label>
-                        <div className="flex items-center gap-4 bg-slate-50 border border-slate-200 rounded-xl p-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <label className="block text-xs font-bold text-slate-700">
+                            Identity Document Upload (PDF) <span className="text-rose-500">*</span>
+                          </label>
+                          {errors.identityDocumentUpload && (
+                            <span className="text-[11px] font-semibold text-rose-600 flex items-center gap-1 animate-fadeIn">
+                              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                              {errors.identityDocumentUpload}
+                            </span>
+                          )}
+                        </div>
+                        <div
+                          className={`flex items-center gap-4 bg-slate-50 border ${
+                            errors.identityDocumentUpload
+                              ? 'border-rose-400 bg-rose-50/20 ring-2 ring-rose-100'
+                              : 'border-slate-200'
+                          } rounded-xl p-3 transition-all`}
+                        >
                           <input
                             type="file"
                             accept="application/pdf"
@@ -602,6 +750,7 @@ export const VendorOnboarding = () => {
                       <InputField
                         formData={formData}
                         onChange={handleChange}
+                        errors={errors}
                         label="Account Holder Name"
                         name="accountHolderName"
                         required
@@ -610,6 +759,7 @@ export const VendorOnboarding = () => {
                       <InputField
                         formData={formData}
                         onChange={handleChange}
+                        errors={errors}
                         label="Bank Name"
                         name="bankName"
                         required
@@ -618,6 +768,7 @@ export const VendorOnboarding = () => {
                       <InputField
                         formData={formData}
                         onChange={handleChange}
+                        errors={errors}
                         label="Account Number"
                         name="accountNumber"
                         required
@@ -626,6 +777,7 @@ export const VendorOnboarding = () => {
                       <InputField
                         formData={formData}
                         onChange={handleChange}
+                        errors={errors}
                         label="IFSC Code"
                         name="ifscCode"
                         required
@@ -683,8 +835,25 @@ export const VendorOnboarding = () => {
                   </div>
                 )}
 
+                {/* Warning Banner if mandatory fields missing */}
+                {stepWarning && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-6 p-4 bg-rose-50 border border-rose-200/90 rounded-2xl flex items-center gap-3 text-rose-800 text-sm font-semibold shadow-xs"
+                  >
+                    <div className="w-8 h-8 rounded-xl bg-rose-100 flex items-center justify-center shrink-0 text-rose-600">
+                      <AlertCircle className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-rose-900">Mandatory Fields Required</p>
+                      <p className="text-xs text-rose-700 font-medium mt-0.5">{stepWarning}</p>
+                    </div>
+                  </motion.div>
+                )}
+
                 {/* Footer Navigation */}
-                <div className="mt-10 pt-6 border-t border-slate-100 flex items-center justify-between">
+                <div className="mt-8 pt-6 border-t border-slate-100 flex items-center justify-between">
                   {currentStep > 1 ? (
                     <button
                       type="button"
