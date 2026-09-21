@@ -106,6 +106,7 @@ import { getVendorNetwork } from '../controllers/adminVendorNetworkController.js
 import { runPaymentReconciliation } from '../controllers/reconciliationController.js';
 import { getRoles, createRole, updateRole, getAdmins, createAdmin, updateAdmin } from '../controllers/adminManagementController.js';
 import { requirePermission } from '../middleware/permissionMiddleware.js';
+import { mutationLimiter } from '../middleware/rateLimiters.js';
 
 const router = express.Router();
 
