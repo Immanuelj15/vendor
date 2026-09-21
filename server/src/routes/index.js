@@ -63,6 +63,7 @@ router.use('/r', publicReferralRoutes); // ADDED FOR MODULE 12
 router.use('/referrals', referralRoutes);
 router.use('/spin', spinRoutes);
 router.use('/vendors', vendorRoutes);
+router.use('/vendor', vendorRoutes);
 router.use('/vendor-subscriptions', vendorSubscriptionRoutes);
 router.use('/admin', adminRoutes);
 router.use('/payments', paymentRoutes);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../services/api';
 import { QrCode, Download, Share2, Users, Eye, RefreshCw } from 'lucide-react';
 
 export default function VendorQRDashboard() {
@@ -17,7 +17,7 @@ export default function VendorQRDashboard() {
     try {
       setLoading(true);
       setError('');
-      const res = await axios.get('/api/vendors/qr/stats');
+      const res = await api.get('/vendors/qr/stats');
       setData(res.data.data);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch QR details. Ensure you are approved and active.');

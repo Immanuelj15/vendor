@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 import {
   Box,
   Typography,
@@ -39,7 +39,7 @@ export default function AdminProductReview() {
   const fetchPendingProducts = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`/api/admin/products?status=PENDING_APPROVAL&page=${page}`);
+      const res = await api.get(`/admin/products?status=PENDING_APPROVAL&page=${page}`);
       setProducts(res.data.data.products);
       setTotalPages(res.data.data.pagination.pages);
     } catch (err) {
@@ -51,7 +51,7 @@ export default function AdminProductReview() {
 
   const handleApprove = async (id) => {
     try {
-      await axios.post(`/api/admin/products/${id}/approve`);
+      await api.post(`/admin/products/${id}/approve`);
       fetchPendingProducts();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to approve');
@@ -64,7 +64,7 @@ export default function AdminProductReview() {
       return;
     }
     try {
-      await axios.post(`/api/admin/products/${rejectId}/reject`, { reason: rejectReason });
+      await api.post(`/admin/products/${rejectId}/reject`, { reason: rejectReason });
       setRejectOpen(false);
       setRejectReason('');
       setRejectId(null);

@@ -10,12 +10,14 @@ import {
   updateVendorBank,
   getVendorStatusHistory,
   getVendorProducts,
+  getVendorProductById,
   updateVendorProduct,
   deleteVendorProduct,
   changeVendorProductStatus,
   getVendorOrders,
   getVendorOrderById
 } from '../controllers/vendorController.js';
+import { getCategories } from '../controllers/categoryController.js';
 import {
   getVendorQR,
   getVendorQRDashboardStats,
@@ -31,6 +33,9 @@ const router = express.Router();
 
 router.use(authenticate);
 
+// Categories for vendor product creation
+router.get('/categories', getCategories);
+
 // Any authenticated user can submit a vendor registration application
 router.post('/register', validateBody(vendorRegisterSchema), registerVendor);
 
@@ -40,6 +45,7 @@ router.post('/withdraw', authorize('VENDOR', 'ADMIN', 'SUPER_ADMIN'), requestWit
 
 // Vendor Product Management
 router.get('/products', authorize('VENDOR', 'ADMIN', 'SUPER_ADMIN'), getVendorProducts);
+router.get('/products/:id', authorize('VENDOR', 'ADMIN', 'SUPER_ADMIN'), getVendorProductById);
 import {
   acceptOrder,
   processOrder,

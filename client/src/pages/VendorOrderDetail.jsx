@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Package, MapPin, Truck, CheckCircle, Clock, FileText, AlertCircle, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import api from '../services/api';
 
 export const VendorOrderDetail = () => {
   const { id } = useParams();
@@ -16,14 +17,8 @@ export const VendorOrderDetail = () => {
 
   const fetchOrder = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/vendor/orders/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setOrder(data.data.order);
-      }
+      const res = await api.get(`/vendor/orders/${id}`);
+      setOrder(res.data?.data?.order);
     } catch (err) {
       console.error('Failed to fetch order detail', err);
     } finally {
@@ -34,19 +29,10 @@ export const VendorOrderDetail = () => {
   const updateStatus = async (action) => {
     setIsProcessing(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/vendor/orders/${id}/${action}`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (response.ok) {
-        fetchOrder();
-      } else {
-        const data = await response.json();
-        alert('Error: ' + data.message);
-      }
+      await api.post(`/vendor/orders/${id}/${action}`);
+      fetchOrder();
     } catch (err) {
-      alert('Network error while updating status');
+      alert('Error: ' + (err.response?.data?.message || err.message));
     } finally {
       setIsProcessing(false);
     }

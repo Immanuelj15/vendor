@@ -47,9 +47,44 @@ export const createVendorProduct = asyncWrapper(async (req, res) => {
 });
 
 export const getVendorProducts = asyncWrapper(async (req, res) => {
-  const vendor = await vendorService.getVendorProfile(req.user._id);
-  const result = await productService.getVendorProducts(vendor.vendor._id, req.query);
-  return res.status(200).json(new ApiResponse(200, result, 'Vendor products retrieved'));
+  try {
+    const vendorProfile = await vendorService.getVendorProfile(req.user._id);
+    const result = await productService.getVendorProducts(vendorProfile.vendor._id, req.query);
+    return res.status(200).json(new ApiResponse(200, result, 'Vendor products retrieved'));
+  } catch (err) {
+    if (req.user?.role === 'ADMIN' || req.user?.role === 'SUPER_ADMIN') {
+      const { Vendor } = await import('../models/Vendor.js');
+      const firstVendor = await Vendor.findOne();
+      if (firstVendor) {
+        const result = await productService.getVendorProducts(firstVendor._id, req.query);
+        return res.status(200).json(new ApiResponse(200, result, 'Vendor products retrieved (Admin view)'));
+      }
+      return res.status(200).json(new ApiResponse(200, {
+        products: [],
+        stats: { total: 0, DRAFT: 0, PENDING_APPROVAL: 0, APPROVED: 0, REJECTED: 0, ACTIVE: 0, INACTIVE: 0 },
+        total: 0,
+        page: 1,
+        pages: 1
+      }, 'No products found'));
+    }
+    throw err;
+  }
+});
+
+export const getVendorProductById = asyncWrapper(async (req, res) => {
+  const { Product } = await import('../models/Product.js');
+  let query = { _id: req.params.id, isDeleted: false };
+  
+  if (req.user?.role !== 'ADMIN' && req.user?.role !== 'SUPER_ADMIN') {
+    const vendorProfile = await vendorService.getVendorProfile(req.user._id);
+    query.vendorId = vendorProfile.vendor._id;
+  }
+  
+  const product = await Product.findOne(query).populate('categoryId', 'name slug');
+  if (!product) {
+    throw new (await import('../utils/ApiError.js')).ApiError(404, 'Product not found', 'NOT_FOUND');
+  }
+  return res.status(200).json(new ApiResponse(200, { product }, 'Vendor product retrieved'));
 });
 
 export const updateVendorProduct = asyncWrapper(async (req, res) => {

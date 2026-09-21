@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../services/api';
 import { Store, ShieldCheck, MapPin } from 'lucide-react';
 
 export default function ScanProcessor() {
@@ -18,9 +18,7 @@ export default function ScanProcessor() {
   const processScan = async () => {
     try {
       setLoading(true);
-      // In a real app, Axios interceptor will automatically attach the JWT token if logged in.
-      // If the user is not logged in, it sends the request anonymously.
-      const res = await axios.get(`/api/qr/${token}`);
+      const res = await api.get(`/qr/${token}`);
       
       setVendor(res.data.data.vendor);
       

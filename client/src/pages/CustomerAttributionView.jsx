@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 import { Store, Calendar, ShieldCheck, MapPin } from 'lucide-react';
 
 export default function CustomerAttributionView() {
@@ -14,7 +14,7 @@ export default function CustomerAttributionView() {
   const fetchAttribution = async () => {
     try {
       setLoading(true);
-      const res = await axios.get('/api/users/me/attribution');
+      const res = await api.get('/users/me/attribution');
       setData(res.data.data);
     } catch (err) {
       setError('Failed to fetch attribution history.');

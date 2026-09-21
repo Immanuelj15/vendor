@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Package, Truck, CheckCircle, Clock, ChevronRight, Search, Filter, ArrowUpRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import api from '../services/api';
 
 export const VendorOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -15,14 +16,8 @@ export const VendorOrders = () => {
 
   const fetchOrders = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/vendor/orders', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setOrders(data.data.orders || []);
-      }
+      const res = await api.get('/vendor/orders');
+      setOrders(res.data?.data?.orders || []);
     } catch (err) {
       console.error('Failed to fetch vendor orders', err);
     } finally {

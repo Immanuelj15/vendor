@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 import { Users } from 'lucide-react';
 
 export default function VendorCustomers() {
@@ -17,7 +17,7 @@ export default function VendorCustomers() {
   const fetchCustomers = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`/api/vendors/customers?page=${page}&limit=15`);
+      const res = await api.get(`/vendors/customers?page=${page}&limit=15`);
       setCustomers(res.data.data.customers);
       setTotalPages(res.data.data.pages);
       setTotalCustomers(res.data.data.total);

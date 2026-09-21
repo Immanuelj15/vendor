@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { IndianRupee, TrendingUp, Calendar, ArrowUpRight, ArrowDownRight, Clock, FileText, Download } from 'lucide-react';
 import { motion } from 'framer-motion';
+import api from '../services/api';
 
 export const VendorFinance = () => {
   const [activeTab, setActiveTab] = useState('statement');
@@ -15,20 +16,13 @@ export const VendorFinance = () => {
   const fetchFinanceData = async () => {
     setIsLoading(true);
     try {
-      const token = localStorage.getItem('token');
       // Fetch Statement
-      const stmtRes = await fetch('/api/vendor/finance/statement', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const stmtData = await stmtRes.json();
-      if (stmtRes.ok) setStatement(stmtData.data);
+      const stmtRes = await api.get('/vendor/finance/statement');
+      setStatement(stmtRes.data?.data);
 
       // Fetch Settlements
-      const stlRes = await fetch('/api/vendor/finance/settlements', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const stlData = await stlRes.json();
-      if (stlRes.ok) setSettlements(stlData.data.settlements || []);
+      const stlRes = await api.get('/vendor/finance/settlements');
+      setSettlements(stlRes.data?.data?.settlements || []);
     } catch (err) {
       console.error('Failed to fetch finance data', err);
     } finally {
