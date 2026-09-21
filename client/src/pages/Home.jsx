@@ -180,11 +180,23 @@ export const Home = () => {
   );
 
   return (
-    <div className="space-y-16 pb-24 text-slate-800 bg-slate-50/50">
+    <div className="relative min-h-screen space-y-16 pb-24 text-slate-800 bg-slate-50/70 overflow-hidden">
+      {/* Engineered Small Grid Pattern Across Entire Home Page */}
+      <div
+        className="fixed inset-0 pointer-events-none z-0 opacity-75"
+        style={{
+          backgroundImage: `
+            linear-gradient(to right, rgba(203, 213, 225, 0.45) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(203, 213, 225, 0.45) 1px, transparent 1px)
+          `,
+          backgroundSize: '20px 20px'
+        }}
+      />
+
       {/* ========================================================================= */}
       {/* 1. LIGHT RADIANT HERO SHOWCASE WITH RICH ANIMATIONS                      */}
       {/* ========================================================================= */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-b from-blue-50/80 via-white to-indigo-50/40 p-6 sm:p-12 lg:p-16 shadow-xl shadow-blue-500/5 m-3 sm:m-6 lg:m-8 border border-blue-100/90">
+      <section className="relative z-10 overflow-hidden rounded-3xl bg-gradient-to-b from-blue-50/80 via-white/95 to-indigo-50/40 backdrop-blur-xs p-6 sm:p-12 lg:p-16 shadow-xl shadow-blue-500/5 m-3 sm:m-6 lg:m-8 border border-blue-100/90">
         {/* Animated Light Glowing Orbs */}
         <motion.div
           animate={{ scale: [1, 1.15, 1], rotate: [0, 90, 0] }}
@@ -345,7 +357,7 @@ export const Home = () => {
       {/* ========================================================================= */}
       {/* 2. ECOSYSTEM EXPLORER (LIGHT TABS FOR SHOPPERS / VENDORS / LOCAL SHOPS)    */}
       {/* ========================================================================= */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-gradient-to-r from-blue-50/60 via-indigo-50/50 to-purple-50/60 rounded-3xl p-6 sm:p-8 border border-blue-100 shadow-sm space-y-6">
           <div className="text-center max-w-2xl mx-auto space-y-2">
             <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200 uppercase tracking-wider">
@@ -551,7 +563,7 @@ export const Home = () => {
       {/* ========================================================================= */}
       {/* 3. FLASH DEALS BANNER (RADIANT CORAL LIGHT THEME)                         */}
       {/* ========================================================================= */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           whileHover={{ scale: 1.01 }}
           transition={{ duration: 0.3 }}
@@ -611,7 +623,7 @@ export const Home = () => {
       {/* ========================================================================= */}
       {/* 4. TOP CATEGORIES BROWSER WITH MICRO-ANIMATIONS                          */}
       {/* ========================================================================= */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
+      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
@@ -668,7 +680,7 @@ export const Home = () => {
       {/* ========================================================================= */}
       {/* 5. FEATURED PRODUCTS SHOWCASE                                            */}
       {/* ========================================================================= */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
           <div>
             <div className="flex items-center gap-2">
@@ -858,7 +870,7 @@ export const Home = () => {
       {/* ========================================================================= */}
       {/* 6. GAMIFICATION: LUCKY WHEEL (BRIGHT CARNIVAL LIGHT THEME)                */}
       {/* ========================================================================= */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           whileHover={{ y: -3 }}
           transition={{ duration: 0.3 }}
@@ -927,7 +939,7 @@ export const Home = () => {
       {/* ========================================================================= */}
       {/* 7. 9-LEVEL REFERRAL CALCULATOR (BRIGHT SKY LIGHT THEME)                   */}
       {/* ========================================================================= */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="rounded-3xl bg-gradient-to-br from-blue-50/90 via-indigo-50/60 to-white p-6 sm:p-10 border border-blue-200/80 shadow-lg shadow-blue-500/5 space-y-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="space-y-1">
@@ -1023,7 +1035,7 @@ export const Home = () => {
       {/* ========================================================================= */}
       {/* 8. VIP CLUB MEMBERSHIP CALLOUT (LIGHT GOLD/AMBER THEME)                   */}
       {/* ========================================================================= */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           whileHover={{ y: -2 }}
           className="rounded-3xl bg-gradient-to-r from-amber-100 via-orange-50 to-yellow-100 text-slate-900 p-6 sm:p-10 border border-amber-300 shadow-md shadow-amber-500/5 flex flex-col md:flex-row items-center justify-between gap-6"
@@ -1055,7 +1067,7 @@ export const Home = () => {
       {/* ========================================================================= */}
       {/* 9. WHY FAIRKART: FOUR TRUST PILLARS (CLEAN LIGHT CARDS)                   */}
       {/* ========================================================================= */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-xl mx-auto mb-8 space-y-1">
           <h3 className="text-xl sm:text-2xl font-black text-slate-900">Why India Shops on FairKart</h3>
           <p className="text-xs text-slate-500">Built from the ground up for transparency, security, and community wealth</p>
