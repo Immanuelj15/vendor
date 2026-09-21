@@ -189,6 +189,9 @@ export const ProductDetail = () => {
           <img
             src={details.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600'}
             alt={details.name}
+            onError={(e) => {
+              e.currentTarget.src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600';
+            }}
             className="w-full h-full object-cover"
           />
           <div className="absolute top-4 right-4 bg-amber-50 border border-amber-200 text-amber-800 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-xs">
@@ -222,11 +225,16 @@ export const ProductDetail = () => {
             <div className="flex items-baseline gap-3">
               {details.discountPrice > 0 ? (
                 <>
-                  <span className="text-3xl font-black text-slate-900">₹{(details.discountPrice / 100).toFixed(2)}</span>
-                  <span className="text-sm text-slate-400 line-through">₹{(details.price / 100).toFixed(2)}</span>
+                  <span className="text-3xl font-black text-slate-900">₹{Number(details.discountPrice).toLocaleString('en-IN')}</span>
+                  <span className="text-sm text-slate-400 line-through">₹{Number(details.price).toLocaleString('en-IN')}</span>
+                  {product.discountValue > 0 && (
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">
+                      {product.discountValue}% OFF
+                    </span>
+                  )}
                 </>
               ) : (
-                <span className="text-3xl font-black text-slate-900">₹{(details.price / 100).toFixed(2)}</span>
+                <span className="text-3xl font-black text-slate-900">₹{Number(details.price).toLocaleString('en-IN')}</span>
               )}
             </div>
 
@@ -260,7 +268,7 @@ export const ProductDetail = () => {
                           : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                       }`}
                     >
-                      {v.name} (₹{(v.discountPrice > 0 ? v.discountPrice : v.price) / 100})
+                      {v.name} (₹{Number(v.discountPrice > 0 ? v.discountPrice : v.price).toLocaleString('en-IN')})
                     </button>
                   ))}
                 </div>

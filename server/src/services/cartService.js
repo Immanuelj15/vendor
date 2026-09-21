@@ -107,6 +107,7 @@ export const cartService = {
       fairCoinsUsed: cart.fairCoinsUsed,
       subtotal,
       total: Math.max(0, subtotal - cart.discountAmount - cart.coinDiscountAmount),
+      items: cart.items,
       vendors: Object.values(groupedItems)
     };
   },

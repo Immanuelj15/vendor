@@ -14,14 +14,22 @@ export const productService = {
     vendor,
     minPrice,
     maxPrice,
+    rating,
+    availability,
     sort = 'newest',
     page = 1,
     limit = 12,
   } = {}) {
     const query = { status: 'APPROVED', isDeleted: false };
 
-    if (search) {
-      query.$text = { $search: search };
+    if (search && search.trim()) {
+      const searchRegex = new RegExp(search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      query.$or = [
+        { name: searchRegex },
+        { description: searchRegex },
+        { tags: { $in: [searchRegex] } },
+        { sku: searchRegex },
+      ];
     }
     if (category) {
       const catObj = await Category.findOne({ slug: category });
@@ -39,6 +47,14 @@ export const productService = {
       if (minPrice) query.price.$gte = Number(minPrice);
       if (maxPrice) query.price.$lte = Number(maxPrice);
     }
+    if (rating) {
+      query.rating = { $gte: Number(rating) };
+    }
+    if (availability === 'in_stock') {
+      query.stock = { $gt: 0 };
+    } else if (availability === 'out_of_stock') {
+      query.stock = { $lte: 0 };
+    }
 
     let sortOptions = { createdAt: -1 };
     if (sort === 'price_asc') sortOptions = { price: 1 };
@@ -46,31 +62,32 @@ export const productService = {
     if (sort === 'rating') sortOptions = { rating: -1 };
     if (sort === 'popular') sortOptions = { reviewCount: -1 };
 
-    const skip = (page - 1) * limit;
+    const safeLimit = Math.min(Math.max(Number(limit) || 12, 1), 50);
+    const safePage = Math.max(Number(page) || 1, 1);
+    const skip = (safePage - 1) * safeLimit;
 
     const productsRaw = await Product.find(query)
       .populate('categoryId', 'name slug')
       .populate('brandId', 'name slug')
       .populate({ 
         path: 'vendorId', 
-        match: { status: 'ACTIVE' }, 
+        match: { status: { $in: ['APPROVED', 'ACTIVE'] } }, 
         select: 'storeName slug logo' 
       })
       .sort(sortOptions)
       .lean();
 
-    // Filter out products where vendor is not ACTIVE (vendorId will be null after match)
+    // Filter out products where vendor is not APPROVED/ACTIVE (vendorId will be null after match)
     const activeProducts = productsRaw.filter(p => p.vendorId !== null);
     
-    // Apply pagination in memory since we filtered post-DB fetch
-    // (A full aggregation pipeline would be better for massive datasets, but this suffices for now)
-    const paginatedProducts = activeProducts.slice(skip, skip + limit);
+    const paginatedProducts = activeProducts.slice(skip, skip + safeLimit);
 
     return {
       products: paginatedProducts,
       total: activeProducts.length,
-      page: Number(page),
-      pages: Math.ceil(activeProducts.length / limit),
+      page: safePage,
+      pages: Math.ceil(activeProducts.length / safeLimit) || 1,
+      limit: safeLimit,
     };
   },
 
@@ -80,7 +97,7 @@ export const productService = {
       .populate('brandId', 'name slug')
       .populate({
         path: 'vendorId',
-        match: { status: 'ACTIVE' },
+        match: { status: { $in: ['APPROVED', 'ACTIVE'] } },
         select: 'storeName slug logo description phone email'
       });
 
